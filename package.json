@@ -1,0 +1,19 @@
+{
+  "name": "watchhoard",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Open-source, self-hostable successor to TV Time. Import your data and keep going.",
+  "license": "AGPL-3.0-or-later",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "mobile": "npm run start --workspace @watchhoard/mobile",
+    "web": "npm run web --workspace @watchhoard/mobile",
+    "seed": "npm run seed --workspace @watchhoard/importer",
+    "import:validate": "npm run validate --workspace @watchhoard/importer",
+    "import:run": "npm run import --workspace @watchhoard/importer",
+    "enrich": "npm run enrich --workspace @watchhoard/importer"
+  }
+}

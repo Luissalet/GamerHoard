@@ -1,0 +1,2 @@
+# Sin reglas: Cloudflare Workers Assets rechaza `/* /index.html 200` como bucle.
+# El fallback de rutas (SPA) se puede activar luego con not_found_handling en wrangler.

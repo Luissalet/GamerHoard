@@ -1,0 +1,17 @@
+node_modules/
+.expo/
+dist/
+web-build/
+.cache/
+*.log
+.env
+.env.local
+.DS_Store
+profile-reconstruction.json
+review-queue.json
+
+# historial personal (regenerable con: npm run seed)
+apps/mobile/assets/seed.json
+
+# scratch validation file (sandbox could not delete; safe to remove)
+_parity.mjs

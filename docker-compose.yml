@@ -1,0 +1,15 @@
+# Minimal self-host. For the full backend (auth, storage, studio) use the Supabase CLI
+# (`supabase start`), which runs this same schema from supabase/migrations. This compose
+# is a bare Postgres for schema work / a lightweight self-host of just the database.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: watchhoard
+      POSTGRES_DB: watchhoard
+    ports: ["5432:5432"]
+    volumes:
+      - ./supabase/migrations:/docker-entrypoint-initdb.d:ro
+      - wh_pgdata:/var/lib/postgresql/data
+volumes:
+  wh_pgdata:
