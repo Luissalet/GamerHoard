@@ -24,4 +24,9 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <meta property="og:url" content="https://gamer-hoard.com" />
         <meta property="og:image" content="https://gamer-hoard.com/icon-512.png" />
         <meta name="twitter:card" content="summary" />
-        <Scro
+        <ScrollViewStyleReset />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
