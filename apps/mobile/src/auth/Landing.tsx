@@ -23,9 +23,9 @@ export function Landing({ onStart }: { onStart: (mode: Mode) => void }) {
             width: 56, height: 56, borderRadius: radius.lg, backgroundColor: colors.accent,
             alignItems: 'center', justifyContent: 'center', marginRight: space(3),
           }}>
-            <Text style={{ color: colors.accentInk, fontWeight: '900', fontSize: 22 }}>WH</Text>
+            <Text style={{ color: colors.accentInk, fontWeight: '900', fontSize: 22 }}>GH</Text>
           </View>
-          <Text style={[font.display, { fontSize: 28 }]}>Watch Hoard</Text>
+          <Text style={[font.display, { fontSize: 28 }]}>GamerHoard</Text>
         </View>
 
         {/* Headline + tagline */}
@@ -41,7 +41,7 @@ export function Landing({ onStart }: { onStart: (mode: Mode) => void }) {
           title={t('landing.feat1Title')} sub={t('landing.feat1Sub')} />
         <Feature icon="shield-checkmark-outline" tint={colors.success}
           title={t('landing.feat2Title')} sub={t('landing.feat2Sub')} />
-        <Feature icon="tv-outline" tint={colors.purple}
+        <Feature icon="game-controller-outline" tint={colors.purple}
           title={t('landing.feat3Title')} sub={t('landing.feat3Sub')} />
 
         {/* CTAs */}

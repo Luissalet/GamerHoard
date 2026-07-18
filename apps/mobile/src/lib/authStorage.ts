@@ -10,7 +10,7 @@ import { Platform } from 'react-native';
 // The choice itself is kept in persistent storage under REMEMBER_KEY, so on the
 // next launch getItem() knows which backend holds the token. Missing = remember.
 
-const REMEMBER_KEY = '@watchhoard/remember';
+const REMEMBER_KEY = '@gamerhoard/remember';
 
 const isWeb = Platform.OS === 'web';
 const hasWindow = typeof window !== 'undefined';

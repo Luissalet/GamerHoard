@@ -124,7 +124,7 @@ export function AuthScreen({ initialMode = 'signup', onBack }: { initialMode?: M
             </Pressable>
           )}
 
-          <Text style={[font.display, { marginBottom: space(1) }]}>Watch Hoard</Text>
+          <Text style={[font.display, { marginBottom: space(1) }]}>GamerHoard</Text>
 
           {pendingEmail ? (
             <CheckEmailView
@@ -183,7 +183,7 @@ export function AuthScreen({ initialMode = 'signup', onBack }: { initialMode?: M
                 setMsg(null);
                 const em = email.trim();
                 if (!em) { setMsg(t('auth.resetNeedEmail')); return; }
-                const origin = (globalThis as any)?.location?.origin ?? 'https://watchhoard.com';
+                const origin = (globalThis as any)?.location?.origin ?? 'https://gamer-hoard.com';
                 const { error } = await supabase.auth.resetPasswordForEmail(em, { redirectTo: origin + '/reset-password' });
                 setMsg(error ? error.message : t('auth.resetSent'));
               }}
