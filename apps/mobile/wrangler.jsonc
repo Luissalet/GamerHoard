@@ -1,8 +1,8 @@
-// Config del Worker que sirve watchhoard.com (reemplaza los flags --name/--assets/--compatibility-date).
+// Config del Worker que sirve gamer-hoard.com (reemplaza los flags --name/--assets/--compatibility-date).
 // La clave es not_found_handling: cualquier ruta desconocida (p. ej. recargar /profile,
 // o el enlace del email de reset) sirve index.html en vez de 404 — comportamiento SPA.
 {
-  "name": "watchhoard",
+  "name": "gamerhoard",
   "compatibility_date": "2026-07-08",
   "assets": {
     "directory": "./dist",
