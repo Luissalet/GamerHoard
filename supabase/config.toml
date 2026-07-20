@@ -1,0 +1,7 @@
+# Supabase local config. The Steam auth function is a PUBLIC browser-redirect
+# endpoint (Steam calls it with no Authorization header), so JWT verification is
+# turned off for it. Deploy with: supabase functions deploy steam-auth --no-verify-jwt
+project_id = "gamerhoard"
+
+[functions.steam-auth]
+verify_jwt = false

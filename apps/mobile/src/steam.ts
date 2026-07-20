@@ -1,23 +1,24 @@
-// Steam import for GamerHoard.
-// Connects a Steam account (via the Steam Web API) and loads owned games with playtime.
+// Steam import for GamerHoard. Two paths, both handled server-side by the
+// `steam-auth` Edge Function (so no CORS proxy and no key in the client bundle):
 //
-// Requirements the user must satisfy:
-//   1. A Steam Web API key (free): https://steamcommunity.com/dev/apikey
-//   2. Their Steam profile set to Public (Game details = Public) so the library is visible.
-//
-// CORS note: api.steampowered.com does not send CORS headers, so a browser (Expo web) cannot
-// call it directly. On a device/emulator (iOS/Android) fetch works with no CORS. For web, set
-// EXPO_PUBLIC_STEAM_PROXY to a CORS proxy prefix (it receives the encoded target URL).
+//   • importSteamLibrary()  — DEFAULT. "Sign in through Steam" (OpenID). No key,
+//     no profile typing. Needs the user's "Game details" privacy = Public.
+//   • importSteamManual()   — HIDDEN fallback for PRIVATE profiles. The user pastes
+//     their own Steam Web API key + profile; a key can read its owner's library
+//     even when private. The key is sent once to the function, never stored server-side.
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import Constants from 'expo-constants';
 import { data } from './db';
 
-const extra = (Constants.expoConfig?.extra ?? {}) as any;
+// Finish any auth session that was pending when the app (re)loaded — needed on web.
+WebBrowser.maybeCompleteAuthSession();
 
+const extra = (Constants.expoConfig?.extra ?? {}) as any;
+const SUPABASE_URL = String(extra.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL || '').replace(/\/+$/, '');
+const FN = `${SUPABASE_URL}/functions/v1/steam-auth`;
 const KEY_STORE = 'gh_steam_key';
-const ENV_KEY = extra.steamKey || process.env.EXPO_PUBLIC_STEAM_KEY;
-const PROXY = extra.steamProxy || process.env.EXPO_PUBLIC_STEAM_PROXY || '';
-const API = 'https://api.steampowered.com';
 
 /** Synthetic library id for a Steam game = STEAM_ID_OFFSET + appid (avoids clashing RAWG ids). */
 export const STEAM_ID_OFFSET = 2_000_000_000;
@@ -26,50 +27,18 @@ export const appidOf = (id: number) => id - STEAM_ID_OFFSET;
 export const steamHeader = (appid: number) => `https://cdn.cloudflare.steamstatic.com/steam/apps/${appid}/header.jpg`;
 export const steamStoreUrl = (appid: number) => `https://store.steampowered.com/app/${appid}/`;
 
+/** Locally-remembered API key for the manual fallback (never leaves the device except to our function). */
 export async function getSteamKey(): Promise<string | null> {
-  try { const k = await AsyncStorage.getItem(KEY_STORE); if (k) return k; } catch { /* ignore */ }
-  return ENV_KEY || null;
+  try { return (await AsyncStorage.getItem(KEY_STORE)) || null; } catch { return null; }
 }
-export async function setSteamKey(k: string): Promise<void> { try { await AsyncStorage.setItem(KEY_STORE, k.trim()); } catch { /* ignore */ } }
-
-const proxied = (url: string) => (PROXY ? PROXY + encodeURIComponent(url) : url);
-async function getJson(url: string): Promise<any | null> {
-  try {
-    const ctl = new AbortController();
-    const timer = setTimeout(() => ctl.abort(), 15000);
-    const r = await fetch(proxied(url), { signal: ctl.signal });
-    clearTimeout(timer);
-    if (!r.ok) return null;
-    return await r.json();
-  } catch { return null; }
+export async function setSteamKey(k: string): Promise<void> {
+  try { await AsyncStorage.setItem(KEY_STORE, k.trim()); } catch { /* ignore */ }
 }
 
 export interface SteamOwnedGame { appid: number; name: string; playtime_forever: number; img_icon_url?: string; rtime_last_played?: number }
 export interface SteamImportResult { steamid: string; total: number; imported: number; hours: number }
 
-const RE_ID64 = /^\d{17}$/;
-/** Accepts a 17-digit SteamID64, a full profile URL, or a vanity name. */
-export async function resolveSteamId(input: string, key: string): Promise<string | null> {
-  const s = input.trim();
-  if (RE_ID64.test(s)) return s;
-  const mProf = s.match(/steamcommunity\.com\/profiles\/(\d{17})/);
-  if (mProf) return mProf[1];
-  let vanity = s;
-  const mVan = s.match(/steamcommunity\.com\/id\/([^/?#]+)/);
-  if (mVan) vanity = mVan[1];
-  const j = await getJson(`${API}/ISteamUser/ResolveVanityURL/v1/?key=${key}&vanityurl=${encodeURIComponent(vanity)}`);
-  if (j?.response?.success === 1 && j.response.steamid) return String(j.response.steamid);
-  return null;
-}
-
-export async function getOwnedGames(steamid: string, key: string): Promise<SteamOwnedGame[] | null> {
-  const j = await getJson(`${API}/IPlayerService/GetOwnedGames/v1/?key=${key}&steamid=${steamid}&include_appinfo=1&include_played_free_games=1&format=json`);
-  if (!j || !j.response) return null;
-  return (j.response.games ?? []) as SteamOwnedGame[];
-}
-
-/** Never played -> backlog; played in the last 90 days -> playing; older -> paused.
- *  (The old rule marked EVERY played game as "playing", flooding that section.) */
+/** Never played -> backlog; played in the last 90 days -> playing; older -> paused. */
 export function steamStateOf(g: SteamOwnedGame): 'backlog' | 'watching' | 'stopped' {
   const pt = g.playtime_forever || 0;
   if (pt <= 0) return 'backlog';
@@ -78,12 +47,10 @@ export function steamStateOf(g: SteamOwnedGame): 'backlog' | 'watching' | 'stopp
   return last >= ninetyDaysAgo ? 'watching' : 'stopped';
 }
 
-/** Resolve profile -> fetch owned games -> upsert each into the library with playtime. */
-export async function importSteamLibrary(profileInput: string, key: string, onProgress?: (done: number, total: number) => void): Promise<SteamImportResult> {
-  const steamid = await resolveSteamId(profileInput.trim(), key.trim());
-  if (!steamid) throw new Error('PROFILE');
-  const games = await getOwnedGames(steamid, key.trim());
-  if (games == null) throw new Error('FETCH');
+interface SteamToken { sid: string; exp: string; sig: string }
+
+/** Upsert a fetched owned-games list into the library (shared by both import paths). */
+async function importGames(games: SteamOwnedGame[], steamid: string, onProgress?: (done: number, total: number) => void): Promise<SteamImportResult> {
   await data.ready();
   let imported = 0, minutes = 0;
   for (let i = 0; i < games.length; i++) {
@@ -99,4 +66,73 @@ export async function importSteamLibrary(profileInput: string, key: string, onPr
     if (onProgress && (i % 5 === 0 || i === games.length - 1)) onProgress(i + 1, games.length);
   }
   return { steamid, total: games.length, imported, hours: Math.round(minutes / 60) };
+}
+
+function parseReturn(url: string): URLSearchParams {
+  const frag = url.includes('#') ? url.slice(url.indexOf('#') + 1) : url.includes('?') ? url.slice(url.indexOf('?') + 1) : '';
+  return new URLSearchParams(frag);
+}
+
+/** Open "Sign in through Steam" and return a short-lived, signed SteamID.
+ *  Throws 'CONFIG' (no backend url), 'CANCELLED' (user closed), 'VERIFY' (Steam rejected). */
+async function loginWithSteam(): Promise<SteamToken> {
+  if (!SUPABASE_URL) throw new Error('CONFIG');
+  const redirectUri = Linking.createURL('steam-return');
+  const startUrl = `${FN}?app=${encodeURIComponent(redirectUri)}`;
+  const res = await WebBrowser.openAuthSessionAsync(startUrl, redirectUri);
+  if (res.type !== 'success' || !res.url) throw new Error('CANCELLED');
+  const p = parseReturn(res.url);
+  if (p.get('error')) throw new Error('VERIFY');
+  const sid = p.get('sid') ?? '', exp = p.get('exp') ?? '', sig = p.get('sig') ?? '';
+  if (!sid || !exp || !sig) throw new Error('VERIFY');
+  return { sid, exp, sig };
+}
+
+/** Exchange a signed SteamID for the owned-games list (server uses its own key). */
+async function fetchOwnedGames(tok: SteamToken): Promise<SteamOwnedGame[]> {
+  const u = `${FN}?stage=games&sid=${encodeURIComponent(tok.sid)}&exp=${encodeURIComponent(tok.exp)}&sig=${encodeURIComponent(tok.sig)}`;
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 20000);
+  try {
+    const r = await fetch(u, { signal: ctl.signal });
+    if (!r.ok) throw new Error('FETCH');
+    const j = await r.json().catch(() => null);
+    if (j?.private) throw new Error('PRIVATE');
+    if (!Array.isArray(j?.games)) throw new Error('FETCH');
+    return j.games as SteamOwnedGame[];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** DEFAULT flow: sign in through Steam → fetch owned games → upsert into the library. */
+export async function importSteamLibrary(onProgress?: (done: number, total: number) => void): Promise<SteamImportResult> {
+  const tok = await loginWithSteam();
+  const games = await fetchOwnedGames(tok);
+  return importGames(games, tok.sid, onProgress);
+}
+
+/** FALLBACK flow: user's own API key + profile (works on private profiles).
+ *  Throws 'CONFIG', 'NEEDBOTH', 'PROFILE' (unresolvable), or 'FETCH' (bad key / API error). */
+export async function importSteamManual(profile: string, key: string, onProgress?: (done: number, total: number) => void): Promise<SteamImportResult> {
+  if (!SUPABASE_URL) throw new Error('CONFIG');
+  if (!profile.trim() || !key.trim()) throw new Error('NEEDBOTH');
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 20000);
+  let j: any = null;
+  try {
+    const r = await fetch(FN, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ mode: 'manual', key: key.trim(), profile: profile.trim() }),
+      signal: ctl.signal,
+    });
+    j = await r.json().catch(() => null);
+    if (!r.ok) throw new Error(j?.error === 'profile' ? 'PROFILE' : j?.error === 'need_both' ? 'NEEDBOTH' : 'FETCH');
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!Array.isArray(j?.games)) throw new Error('FETCH');
+  await setSteamKey(key);
+  return importGames(j.games as SteamOwnedGame[], String(j.steamid ?? ''), onProgress);
 }
