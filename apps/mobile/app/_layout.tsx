@@ -6,7 +6,6 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { colors } from '../src/theme';
-import { isCloud } from '../src/lib/backend';
 import { SessionProvider, useSession } from '../src/auth/session';
 import { AuthFlow } from '../src/auth/AuthFlow';
 import { SuspendedScreen } from '../src/auth/Suspended';
@@ -30,8 +29,8 @@ function LanguageGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// When the cloud backend is active, require a signed-in session before the app renders.
-// In local mode this component is never mounted, so behavior is unchanged.
+// Require a signed-in session before the app renders. Always mounted, so login is
+// mandatory regardless of the data backend (cloud or local).
 function Gate({ children }: { children: React.ReactNode }) {
   const { session, account, loading } = useSession();
   if (loading)
@@ -57,13 +56,10 @@ export default function RootLayout() {
       <QueryClientProvider client={qc}>
         <StatusBar style="light" />
         <LanguageGate>
-          {isCloud ? (
-            <SessionProvider>
-              <Gate>{content}</Gate>
-            </SessionProvider>
-          ) : (
-            content
-          )}
+          {/* Auth is ALWAYS required — login/logout regardless of the data backend. */}
+          <SessionProvider>
+            <Gate>{content}</Gate>
+          </SessionProvider>
         </LanguageGate>
       </QueryClientProvider>
     </SafeAreaProvider>

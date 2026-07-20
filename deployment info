@@ -1,0 +1,10 @@
+Cloudflare worker
+
+Build command
+cd apps/mobile && npx expo export -p web
+
+Deploy command
+cd apps/mobile && npx wrangler deploy
+
+Non-production branch deploy command
+npx wrangler versions upload
