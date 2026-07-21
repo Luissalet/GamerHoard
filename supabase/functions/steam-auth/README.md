@@ -6,10 +6,15 @@ longer create an API key or paste a profile — they just log in.
 
 ## One-time setup
 
-1. Install the mobile dep (adds the in-app browser used for the login):
+1. Install deps. `expo-web-browser` (the in-app browser used for the login) is
+   already pinned in `apps/mobile/package.json` **and** the root
+   `package-lock.json`, so a plain install at the repo root is enough:
    ```
-   cd apps/mobile && npx expo install expo-web-browser
+   npm install
    ```
+   Don't run `npx expo install expo-web-browser` — it would rewrite the lock and
+   desync CI. Note: it ships inside Expo Go, but a custom native build needs a
+   rebuild to pick it up.
 
 2. Set the function secrets on your Supabase project:
    ```
