@@ -6,11 +6,7 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": false,
     "icon": "./assets/icon.png",
-    "splash": {
-      "backgroundColor": "#0A0A0F"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.gamerhoard"
@@ -30,7 +26,15 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0A0A0F",
+          "image": "./assets/icon.png",
+          "imageWidth": 200
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false

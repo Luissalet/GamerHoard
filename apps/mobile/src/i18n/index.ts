@@ -1,6 +1,10 @@
 // i18next setup for Watch Hoard. Default language is English; the user's choice is
 // persisted in AsyncStorage and restored on startup (see loadStoredLanguage + the
 // LanguageGate in app/_layout.tsx).
+// Hermes (Android) no trae Intl.PluralRules: sin este polyfill, las claves
+// plural _one/_other de i18next v4 renderizan la clave cruda en vez del texto
+// (mismo bug ya arreglado en BookHoard — lesson #24). Debe ir ANTES de i18n.init.
+import 'intl-pluralrules';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';

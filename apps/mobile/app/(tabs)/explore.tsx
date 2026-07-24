@@ -318,7 +318,6 @@ export default function ExploreScreen() {
             searching && !results ? <View style={{ paddingTop: space(4) }}><SkeletonGrid columns={numColumns} rows={3} itemWidth={itemWidth} /></View> : (
               <FlashList
                 data={resultRows}
-                estimatedItemSize={itemWidth * 1.5 + 40}
                 keyExtractor={(row, idx) => 'r' + idx + (row[0] ? row[0].kind + row[0].id : '')}
                 contentContainerStyle={{ padding: space(2), paddingBottom: space(8) }}
                 ListHeaderComponent={tmdbPeople.length > 0 ? (

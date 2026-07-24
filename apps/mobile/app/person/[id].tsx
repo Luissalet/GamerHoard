@@ -117,5 +117,5 @@ const s = StyleSheet.create({
   bio: { ...font.body, color: colors.text, lineHeight: 22 },
   bioToggle: { color: colors.accent, fontWeight: '700', marginTop: 6, fontSize: 13 },
   poster: { width: 110, height: 165, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
-  posterBusy: { ...StyleSheet.absoluteFillObject, height: 165, borderRadius: radius.md, backgroundColor: '#0008', alignItems: 'center', justifyContent: 'center' },
+  posterBusy: { ...StyleSheet.absoluteFill, height: 165, borderRadius: radius.md, backgroundColor: '#0008', alignItems: 'center', justifyContent: 'center' },
 });

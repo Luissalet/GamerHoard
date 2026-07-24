@@ -42,7 +42,6 @@ export default function HistoryScreen() {
       ) : (
         <FlashList
           data={rows}
-          estimatedItemSize={64}
           getItemType={(i: any) => (i.header ? 'h' : 'r')}
           keyExtractor={(i: any, idx) => (i.header ? 'h' + i.header : 'r' + (i.id ?? idx))}
           contentContainerStyle={{ padding: space(3), paddingBottom: space(8) }}

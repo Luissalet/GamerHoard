@@ -299,5 +299,5 @@ const s = StyleSheet.create({
   pickSheet: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: space(4), width: '100%', maxWidth: 620, maxHeight: '85%' },
   pickCell: { width: 92 },
   pickImg: { width: 92, height: 138, borderRadius: radius.sm, backgroundColor: colors.surfaceAlt },
-  pickBusy: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0008', alignItems: 'center', justifyContent: 'center' },
+  pickBusy: { ...StyleSheet.absoluteFill, backgroundColor: '#0008', alignItems: 'center', justifyContent: 'center' },
 });

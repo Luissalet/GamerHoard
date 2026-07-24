@@ -91,7 +91,6 @@ export default function ListDetail() {
           data={items}
           key={numColumns}
           numColumns={numColumns}
-          estimatedItemSize={itemWidth * 1.5}
           keyExtractor={(it, i) => `${it.kind}:${it.tvdb_id ?? it.uuid ?? i}`}
           contentContainerStyle={{ padding: gutter, paddingBottom: space(10) }}
           renderItem={({ item }) => {

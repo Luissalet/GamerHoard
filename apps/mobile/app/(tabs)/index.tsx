@@ -271,7 +271,6 @@ export default function GamesScreen() {
         ) : (
           <FlashList
             data={chunk(playing, numColumns)}
-            estimatedItemSize={itemWidth}
             keyExtractor={(_row, idx) => 'p' + idx}
             contentContainerStyle={{ padding: space(1) }}
             renderItem={({ item: row }) => (
@@ -295,7 +294,6 @@ export default function GamesScreen() {
           {lAll ? <SkeletonGrid columns={numColumns} rows={4} itemWidth={itemWidth} /> : (all ?? []).length === 0 ? EmptyLibrary : (
             <FlashList
               data={items}
-              estimatedItemSize={itemWidth}
               getItemType={(i) => i.kind}
               keyExtractor={(i, idx) => (i.kind === 'header' ? 'h' + i.key : 'r' + idx)}
               contentContainerStyle={{ padding: space(1), paddingBottom: 90 }}

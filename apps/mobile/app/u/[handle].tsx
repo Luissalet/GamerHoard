@@ -230,7 +230,7 @@ const s = StyleSheet.create({
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent, borderRadius: radius.pill, paddingHorizontal: space(6), paddingVertical: space(3), minWidth: 160 },
   btnOutline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingHorizontal: space(6), paddingVertical: space(3), minWidth: 160 },
   banner: { height: 150, backgroundColor: colors.surfaceAlt },
-  bannerShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(11,15,20,0.35)' },
+  bannerShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(11,15,20,0.35)' },
   reviewCard: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: space(3) },
   menuOverlay: { flex: 1, backgroundColor: '#0007', alignItems: 'flex-end', paddingTop: space(12), paddingRight: space(3) },
   menuSheet: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', minWidth: 210 },

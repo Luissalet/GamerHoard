@@ -67,7 +67,6 @@ export function FriendsFeed() {
   return (
     <FlashList
       data={events}
-      estimatedItemSize={72}
       keyExtractor={(e) => String(e.id)}
       contentContainerStyle={{ paddingVertical: space(2), paddingBottom: space(8) }}
       refreshing={refreshing}

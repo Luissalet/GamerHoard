@@ -144,7 +144,6 @@ export default function MoviesScreen() {
         ) : (
           <FlashList
             data={upcoming ?? []}
-            estimatedItemSize={104}
             keyExtractor={(m) => m.uuid ?? m.title}
             contentContainerStyle={{ padding: space(3) }}
             ItemSeparatorComponent={() => <View style={{ height: space(3) }} />}
@@ -188,7 +187,6 @@ export default function MoviesScreen() {
           <FlashList
             key={numColumns}
             data={items}
-            estimatedItemSize={itemWidth * 1.5}
             getItemType={(i) => i.kind}
             keyExtractor={(i, idx) => (i.kind === 'header' ? 'h' + i.key : 'r' + idx)}
             contentContainerStyle={{ padding: space(1), paddingBottom: 90 }}
