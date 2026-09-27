@@ -2,8 +2,8 @@
   "schema": 1,
   "id": "gamerhoard",
   "name": "GamerHoard",
-  "purpose": "Biblioteca local de videojuegos: catálogo RAWG opcional, seguimiento, DLC, estadísticas e importación de Steam.",
-  "capabilities": ["games", "library", "backlog", "ratings", "notes", "dlc", "stats", "steam-import", "json-import-export"],
+  "purpose": "Biblioteca local de videojuegos: sesiones y tiempo jugado, catálogo RAWG opcional, seguimiento, DLC, estadísticas e importación de Steam.",
+  "capabilities": ["games", "library", "backlog", "ratings", "notes", "dlc", "stats", "play-sessions", "playtime-history", "steam-import", "json-import-export"],
   "placeholders": ["GAMERHOARD_DIR"],
   "mcp": {
     "transport": "stdio",

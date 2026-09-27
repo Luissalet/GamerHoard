@@ -23,11 +23,24 @@ test('stdio MCP handshake and tool calls persist across server runs', async () =
   const first = await run([
     { id: 1, method: 'initialize', params: { protocolVersion: '2025-03-26' } },
     { id: 2, method: 'tools/list' },
-    { id: 3, method: 'tools/call', params: { name: 'gamer_add', arguments: { title: 'Portal 2' } } },
+    { id: 3, method: 'tools/call', params: { name: 'gamer_add', arguments: { title: 'Portal 2', steamAppId: 620 } } },
+    { id: 4, method: 'tools/call', params: { name: 'gamer_log_session', arguments: { id: 'steam:620', sessionId: 'mcp:portal2:001', minutes: 42, playedAt: '2026-09-28T12:00:00+02:00', notes: 'Co-op' } } },
+    { id: 5, method: 'tools/call', params: { name: 'gamer_sessions', arguments: { id: 'steam:620', from: '2026-09-28T00:00:00Z' } } },
+    { id: 6, method: 'tools/call', params: { name: 'gamer_sessions', arguments: { from: '2026-09-28', to: '2026-09-28', limit: 1 } } },
   ]);
   assert.equal(first[0].result.serverInfo.name, 'gamerhoard');
   assert.ok(first[1].result.tools.some(t => t.name === 'gamer_stats'));
+  assert.ok(first[1].result.tools.some(t => t.name === 'gamer_log_session'));
+  assert.ok(first[1].result.tools.some(t => t.name === 'gamer_sessions'));
   assert.equal(JSON.parse(first[2].result.content[0].text).game.title, 'Portal 2');
-  const second = await run([{ id: 4, method: 'tools/call', params: { name: 'gamer_stats', arguments: {} } }]);
+  assert.equal(JSON.parse(first[3].result.content[0].text).playtimeMinutes, 42);
+  const history = JSON.parse(first[4].result.content[0].text);
+  assert.equal(history.total, 1);
+  assert.equal(history.minutes, 42);
+  const globalHistory = JSON.parse(first[5].result.content[0].text);
+  assert.equal(globalHistory.sessions[0].title, 'Portal 2');
+  assert.equal(globalHistory.sessions[0].gameId, 'steam:620');
+  const second = await run([{ id: 7, method: 'tools/call', params: { name: 'gamer_stats', arguments: {} } }]);
   assert.equal(JSON.parse(second[0].result.content[0].text).total, 1);
+  assert.equal(JSON.parse(second[0].result.content[0].text).playtimeHours, 0.7);
 });

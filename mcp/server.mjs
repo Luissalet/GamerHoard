@@ -12,6 +12,8 @@ const tools = [
   ['gamer_add_from_catalog', 'Añadir por ID de RAWG con metadatos. Requiere RAWG_API_KEY y conexión.', object({ rawgId: N, state: S, ownedPlatforms: A }, ['rawgId'])],
   ['gamer_update', 'Actualizar estado, nota de 1 a 10, notas, favorito, plataformas o progreso.', object({ id: S, state: S, rating: { type: ['number','null'] }, notes: S, favorite: B, progressPercent: N, playtimeMinutes: N, ownedPlatforms: A, platforms: A, genres: A, tags: A }, ['id'])],
   ['gamer_dlc', 'Crear o marcar un DLC o expansión.', object({ id: S, title: S, completed: B, notes: S }, ['id','title','completed'])],
+  ['gamer_log_session', 'Crear o corregir una sesión. Repetir sessionId no suma tiempo dos veces.', object({ id: S, sessionId: { type: 'string', description: 'Identificador estable y único de esta sesión dentro del juego.' }, minutes: { type: 'number', description: 'Duración absoluta de la sesión en minutos; al corregir, indica el nuevo total.' }, playedAt: { type: 'string', description: 'Fecha y hora ISO 8601 con zona horaria, por ejemplo 2026-09-28T12:00:00Z.' }, notes: S }, ['id','sessionId','minutes','playedAt'])],
+  ['gamer_sessions', 'Ver sesiones y total de minutos filtrado de un juego o de toda la biblioteca si se omite id.', object({ id: S, from: { type: 'string', description: 'Inicio inclusivo: día UTC YYYY-MM-DD o fecha/hora ISO 8601 con zona horaria.' }, to: { type: 'string', description: 'Fin inclusivo: día UTC YYYY-MM-DD completo o fecha/hora ISO 8601 con zona horaria.' }, limit: N })],
   ['gamer_stats', 'Estadísticas de la biblioteca local.', object({})],
   ['gamer_backlog', 'Sugerir juegos pendientes o pausados de la propia biblioteca.', object({ genre: S, platform: S, includePaused: B, limit: N })],
   ['gamer_import_steam', 'Importar juegos y horas de Steam con una clave Web API de usuario. La clave no se guarda.', object({ steamId: S, apiKey: S }, ['steamId','apiKey'])],
@@ -62,6 +64,8 @@ export async function call(name, a = {}) {
     }
     case 'gamer_update': { const { id, ...patch } = a; return db.update(id, patch); }
     case 'gamer_dlc': { const { id, ...patch } = a; return db.dlc(id, patch); }
+    case 'gamer_log_session': { const { id, ...session } = a; return db.logSession(id, session); }
+    case 'gamer_sessions': { const { id, ...filters } = a; return db.sessions(id, filters); }
     case 'gamer_stats': return db.stats();
     case 'gamer_backlog': return db.recommend(a);
     case 'gamer_import_steam': return steamImport(a);
