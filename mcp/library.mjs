@@ -1,0 +1,130 @@
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { homedir } from 'node:os';
+import { randomUUID } from 'node:crypto';
+
+export const DATA_PATH = process.env.GAMERHOARD_DATA_FILE || join(homedir(), '.gamerhoard', 'library.json');
+export const STATES = ['backlog', 'playing', 'paused', 'completed', 'dropped'];
+const FORMAT = 'gamerhoard-library';
+const now = () => new Date().toISOString();
+const blank = () => ({ format: FORMAT, version: 1, games: [] });
+const str = (v) => typeof v === 'string' ? v.trim() : '';
+const unique = (v) => [...new Set((Array.isArray(v) ? v : []).map(str).filter(Boolean))];
+const finite = (v, name, min = 0, max = Number.MAX_SAFE_INTEGER) => {
+  if (v === undefined || v === null || v === '') return undefined;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < min || n > max) throw new Error(`${name} debe estar entre ${min} y ${max}`);
+  return n;
+};
+
+export class Library {
+  constructor(path = DATA_PATH) { this.path = path; this.db = null; }
+  async load() {
+    if (this.db) return this.db;
+    try {
+      const parsed = JSON.parse(await readFile(this.path, 'utf8'));
+      if (parsed.format !== FORMAT || parsed.version !== 1 || !Array.isArray(parsed.games)) throw new Error('formato no reconocido');
+      this.db = parsed;
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw new Error(`No se puede abrir ${this.path}: ${error.message}`);
+      this.db = blank();
+    }
+    return this.db;
+  }
+  async save() {
+    await mkdir(dirname(this.path), { recursive: true });
+    const temp = `${this.path}.${process.pid}.${randomUUID()}.tmp`;
+    await writeFile(temp, JSON.stringify(this.db, null, 2) + '\n', { mode: 0o600 });
+    await rename(temp, this.path);
+  }
+  async games() { return (await this.load()).games; }
+  async find(id) {
+    const game = (await this.games()).find(g => g.id === id || (g.rawgId && String(g.rawgId) === String(id)) || (g.steamAppId && `steam:${g.steamAppId}` === id));
+    if (!game) throw new Error(`Juego no encontrado: ${id}`);
+    return game;
+  }
+  async list({ query = '', state, favorite, platform, limit = 100 } = {}) {
+    if (state && !STATES.includes(state)) throw new Error('Estado no válido');
+    const q = str(query).toLocaleLowerCase();
+    const items = (await this.games()).filter(g =>
+      (!q || [g.title, g.notes, ...g.genres, ...g.tags].some(v => v.toLocaleLowerCase().includes(q))) &&
+      (!state || g.state === state) && (favorite === undefined || g.favorite === favorite) &&
+      (!platform || g.ownedPlatforms.some(v => v.toLocaleLowerCase() === platform.toLocaleLowerCase())));
+    return { total: items.length, games: items.slice(0, Math.min(500, Math.max(1, Number(limit) || 100))) };
+  }
+  async add(input) {
+    const title = str(input.title);
+    if (!title) throw new Error('Falta el título');
+    const games = await this.games();
+    const rawgId = finite(input.rawgId, 'rawgId', 1);
+    const steamAppId = finite(input.steamAppId, 'steamAppId', 1);
+    const id = str(input.id) || (steamAppId ? `steam:${steamAppId}` : rawgId ? `rawg:${rawgId}` : randomUUID());
+    const existing = games.find(g => g.id === id || g.title.toLocaleLowerCase() === title.toLocaleLowerCase());
+    if (existing) return { game: existing, added: false };
+    const state = input.state || 'backlog';
+    if (!STATES.includes(state)) throw new Error('Estado no válido');
+    const date = now();
+    const game = { id, title, state, favorite: false, rating: null, notes: '', ownedPlatforms: unique(input.ownedPlatforms), platforms: unique(input.platforms), genres: unique(input.genres), tags: [], dlcs: [], playtimeMinutes: finite(input.playtimeMinutes, 'playtimeMinutes') || 0, progressPercent: 0, rawgId: rawgId || null, steamAppId: steamAppId || null, released: str(input.released) || null, coverUrl: str(input.coverUrl) || null, description: str(input.description), addedAt: date, updatedAt: date };
+    games.push(game); await this.save();
+    return { game, added: true };
+  }
+  async update(id, patch) {
+    const g = await this.find(id);
+    const next = { ...g };
+    if (patch.state !== undefined) { if (!STATES.includes(patch.state)) throw new Error('Estado no válido'); next.state = patch.state; }
+    if (patch.rating !== undefined) next.rating = patch.rating === null ? null : finite(patch.rating, 'rating', 1, 10);
+    if (patch.notes !== undefined) next.notes = str(patch.notes);
+    if (patch.favorite !== undefined) { if (typeof patch.favorite !== 'boolean') throw new Error('favorite debe ser booleano'); next.favorite = patch.favorite; }
+    if (patch.progressPercent !== undefined) next.progressPercent = finite(patch.progressPercent, 'progressPercent', 0, 100);
+    if (patch.playtimeMinutes !== undefined) next.playtimeMinutes = finite(patch.playtimeMinutes, 'playtimeMinutes');
+    for (const field of ['ownedPlatforms', 'platforms', 'genres', 'tags']) if (patch[field] !== undefined) next[field] = unique(patch[field]);
+    next.updatedAt = now();
+    Object.assign(g, next); await this.save(); return g;
+  }
+  async dlc(id, { title, completed, notes = '' }) {
+    const g = await this.find(id);
+    title = str(title);
+    if (!title || typeof completed !== 'boolean') throw new Error('Indica título y completed booleano');
+    let item = g.dlcs.find(d => d.title.toLocaleLowerCase() === title.toLocaleLowerCase());
+    if (item) { item.completed = completed; item.notes = str(notes); }
+    else { item = { title, completed, notes: str(notes) }; g.dlcs.push(item); }
+    g.updatedAt = now(); await this.save(); return { gameId: g.id, dlc: item };
+  }
+  async stats() {
+    const games = await this.games();
+    const byState = Object.fromEntries(STATES.map(s => [s, games.filter(g => g.state === s).length]));
+    const rated = games.filter(g => g.rating !== null);
+    const tally = field => Object.entries(games.flatMap(g => g[field]).reduce((a, x) => (a[x] = (a[x] || 0) + 1, a), {})).sort((a,b) => b[1]-a[1]);
+    return { total: games.length, byState, favorites: games.filter(g => g.favorite).length, playtimeHours: Math.round(games.reduce((n,g) => n + g.playtimeMinutes, 0) / 60 * 10) / 10, averageRating: rated.length ? Math.round(rated.reduce((n,g) => n + g.rating, 0) / rated.length * 10) / 10 : null, dlcs: { total: games.reduce((n,g) => n + g.dlcs.length, 0), completed: games.reduce((n,g) => n + g.dlcs.filter(d => d.completed).length, 0) }, genres: tally('genres'), ownedPlatforms: tally('ownedPlatforms') };
+  }
+  async recommend({ genre, platform, includePaused = true, limit = 5 } = {}) {
+    const games = (await this.games()).filter(g => (g.state === 'backlog' || (includePaused && g.state === 'paused')) && (!genre || g.genres.some(x => x.toLocaleLowerCase() === genre.toLocaleLowerCase())) && (!platform || g.ownedPlatforms.some(x => x.toLocaleLowerCase() === platform.toLocaleLowerCase())));
+    return games.sort((a,b) => (Number(b.favorite)*3 + (b.rating || 0)/10 + Number(b.state === 'paused')) - (Number(a.favorite)*3 + (a.rating || 0)/10 + Number(a.state === 'paused'))).slice(0, Math.min(20, Math.max(1, Number(limit) || 5)));
+  }
+  async exportTo(path) {
+    await this.load();
+    if (!path || path === this.path) throw new Error('Indica una ruta de exportación distinta del archivo activo');
+    await mkdir(dirname(path), { recursive: true });
+    await writeFile(path, JSON.stringify({ ...this.db, exportedAt: now() }, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+    return { path, games: this.db.games.length };
+  }
+  async importFrom(path) {
+    const imported = JSON.parse(await readFile(path, 'utf8'));
+    let rows;
+    if (imported.format === FORMAT && imported.version === 1 && Array.isArray(imported.games)) rows = imported.games;
+    else if (imported.format === 'watchhoard-export' && Array.isArray(imported.shows)) rows = imported.shows.map(s => ({ title: s.title, state: ({ watching: 'playing', stopped: 'paused', archived: 'completed' })[s.state] || 'backlog', rawgId: Number(s.tvdb_id) > 0 && Number(s.tvdb_id) < 2000000000 ? Number(s.tvdb_id) : null, steamAppId: Number(s.steam_appid) || (Number(s.tvdb_id) >= 2000000000 ? Number(s.tvdb_id) - 2000000000 : null), favorite: !!s.is_favorite, rating: s.user_rating, notes: s.notes, playtimeMinutes: s.playtime_minutes, ownedPlatforms: s.owned_platforms, platforms: s.platforms, genres: s.genres, coverUrl: s.poster, progressPercent: s.total_episodes > 0 ? Math.min(100, Math.round((s.watched_episodes || 0) / s.total_episodes * 100)) : 0 }));
+    else throw new Error('Formato de importación desconocido');
+    let added = 0, skipped = 0;
+    for (const row of rows) {
+      if (!str(row.title)) { skipped++; continue; }
+      const outcome = await this.add({ ...row, ownedPlatforms: typeof row.ownedPlatforms === 'string' ? parseArray(row.ownedPlatforms) : row.ownedPlatforms, platforms: typeof row.platforms === 'string' ? parseArray(row.platforms) : row.platforms, genres: typeof row.genres === 'string' ? parseArray(row.genres) : row.genres });
+      if (!outcome.added) { skipped++; continue; }
+      const patch = { favorite: !!row.favorite, rating: row.rating == null ? null : Number(row.rating), notes: row.notes || '', progressPercent: row.progressPercent || 0, tags: row.tags || [] };
+      await this.update(outcome.game.id, patch);
+      for (const d of Array.isArray(row.dlcs) ? row.dlcs : []) if (d.title) await this.dlc(outcome.game.id, d);
+      added++;
+    }
+    return { added, skipped, total: rows.length };
+  }
+}
+function parseArray(value) { try { const v = JSON.parse(value); return Array.isArray(v) ? v : []; } catch { return []; } }

@@ -1,5 +1,0 @@
-cd ./apps/mobile
-
-npx expo start -c 
-
-press w
