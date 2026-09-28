@@ -17,6 +17,7 @@ const tools = [
   ['gamer_stats', 'Estadísticas de la biblioteca local.', object({})],
   ['gamer_backlog', 'Sugerir juegos pendientes o pausados de la propia biblioteca.', object({ genre: S, platform: S, includePaused: B, limit: N })],
   ['gamer_import_steam', 'Importar juegos y horas de Steam con una clave Web API de usuario. La clave no se guarda.', object({ steamId: S, apiKey: S }, ['steamId','apiKey'])],
+  ['gamer_sync_steam_achievements', 'Actualizar el resumen de logros de Steam para un juego de la biblioteca. Pasa SteamID64 y Web API key en esta llamada; no se guardan. Sinónimos: logros, achievements, progreso Steam', object({ id: S, steamId: S, apiKey: S }, ['id','steamId','apiKey'])],
   ['gamer_import_json', 'Añadir juegos desde una exportación GamerHoard o la antigua exportación web, sin sustituir los existentes.', object({ path: S }, ['path'])],
   ['gamer_export_json', 'Crear una copia JSON completa en una ruta nueva. Nunca sobrescribe.', object({ path: S }, ['path'])],
 ].map(([name, description, inputSchema]) => ({ name, description, inputSchema }));
@@ -49,6 +50,26 @@ async function steamImport({ steamId, apiKey }) {
   }
   return { total: games.length, added, existing };
 }
+async function steamAchievements({ id, steamId, apiKey }) {
+  if (!/^\d{17}$/.test(steamId) || !apiKey) throw new Error('Indica SteamID64 de 17 cifras y tu Steam Web API key');
+  const game = await db.find(id);
+  if (!game.steamAppId) throw new Error('Este juego no tiene Steam App ID');
+  const url = new URL('https://partner.steam-api.com/ISteamUserStats/GetPlayerAchievements/v1/');
+  url.searchParams.set('key', apiKey);
+  url.searchParams.set('steamid', steamId);
+  url.searchParams.set('appid', String(game.steamAppId));
+  let response;
+  try { response = await fetch(url, { signal: AbortSignal.timeout(20000) }); }
+  catch { throw new Error('No se pudo consultar Steam. Comprueba la conexión.'); }
+  if (!response.ok) throw new Error(`Steam respondió ${response.status}; comprueba clave y privacidad del perfil.`);
+  const stats = (await response.json())?.playerstats;
+  if (stats?.success === false || !Array.isArray(stats?.achievements) || !stats.achievements.length) {
+    return { gameId: game.id, available: false, reason: 'Steam no ofrece logros consultables para este juego y perfil; se conserva el último resumen local.' };
+  }
+  const total = stats.achievements.length;
+  const unlocked = stats.achievements.filter((item) => item?.achieved === 1 || item?.achieved === true).length;
+  return { available: true, ...(await db.setSteamAchievements(game.id, unlocked, total)) };
+}
 export async function call(name, a = {}) {
   switch (name) {
     case 'gamer_list': return db.list(a);
@@ -69,6 +90,7 @@ export async function call(name, a = {}) {
     case 'gamer_stats': return db.stats();
     case 'gamer_backlog': return db.recommend(a);
     case 'gamer_import_steam': return steamImport(a);
+    case 'gamer_sync_steam_achievements': return steamAchievements(a);
     case 'gamer_import_json': return db.importFrom(a.path);
     case 'gamer_export_json': return db.exportTo(a.path);
     default: throw new Error(`Herramienta desconocida: ${name}`);

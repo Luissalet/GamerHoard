@@ -19,6 +19,7 @@ The library lives at `~/.gamerhoard/library.json` (`C:\Users\<user>\.gamerhoard\
 - `gamer_stats`, `gamer_backlog`: summaries and deterministic backlog suggestions.
 - `gamer_search_catalog`, `gamer_add_from_catalog`: optional RAWG metadata. Set `RAWG_API_KEY` in Faustus's environment to enable these tools; the local library works without it.
 - `gamer_import_steam`: pass a SteamID64 and Steam Web API key **in the call** to import a public library and playtime. The key is not stored in JSON or logs. Existing games are preserved. Internet access and suitable Steam privacy settings are required.
+- `gamer_sync_steam_achievements`: refresh one imported Steam game's unlocked/total achievements and last sync time. Pass the SteamID64 and Web API key for this call; neither is saved. Games without accessible achievements leave the previous local summary intact. This summary stays separate from manually entered progress.
 - `gamer_import_json`, `gamer_export_json`: additive import and export. GamerHoard exports and the old `watchhoard-export` format are accepted; existing entries are skipped.
 
 Statuses are `backlog`, `playing`, `paused`, `completed` and `dropped`. Sessions are stored in the local JSON and included in imports and exports. Previous or imported playtime remains the base to which sessions add. An import adds missing session IDs but keeps existing ones; use `gamer_log_session` to correct an existing session. Repeated `sessionId` values within one game in an export are rejected before any change.

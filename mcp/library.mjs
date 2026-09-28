@@ -84,7 +84,7 @@ export class Library {
     if (!STATES.includes(state)) throw new Error('Estado no válido');
     const date = now();
     const playtimeBaseMinutes = finite(input.playtimeBaseMinutes, 'playtimeBaseMinutes') ?? (finite(input.playtimeMinutes, 'playtimeMinutes') || 0);
-    const game = { id, title, state, favorite: false, rating: null, notes: '', ownedPlatforms: unique(input.ownedPlatforms), platforms: unique(input.platforms), genres: unique(input.genres), tags: [], dlcs: [], sessions: [], playtimeBaseMinutes, playtimeMinutes: playtimeBaseMinutes, progressPercent: 0, rawgId: rawgId || null, steamAppId: steamAppId || null, released: str(input.released) || null, coverUrl: str(input.coverUrl) || null, description: str(input.description), addedAt: date, updatedAt: date };
+    const game = { id, title, state, favorite: false, rating: null, notes: '', ownedPlatforms: unique(input.ownedPlatforms), platforms: unique(input.platforms), genres: unique(input.genres), tags: [], dlcs: [], sessions: [], playtimeBaseMinutes, playtimeMinutes: playtimeBaseMinutes, progressPercent: 0, rawgId: rawgId || null, steamAppId: steamAppId || null, steamAchievements: null, released: str(input.released) || null, coverUrl: str(input.coverUrl) || null, description: str(input.description), addedAt: date, updatedAt: date };
     games.push(game); await this.save();
     return { game, added: true };
   }
@@ -107,6 +107,17 @@ export class Library {
     for (const field of ['ownedPlatforms', 'platforms', 'genres', 'tags']) if (patch[field] !== undefined) next[field] = unique(patch[field]);
     next.updatedAt = now();
     Object.assign(g, next); await this.save(); return g;
+  }
+  async setSteamAchievements(id, unlocked, total) {
+    const game = await this.find(id);
+    if (!game.steamAppId) throw new Error('Este juego no tiene Steam App ID');
+    if (!Number.isInteger(unlocked) || !Number.isInteger(total) || total <= 0 || unlocked < 0 || unlocked > total) {
+      throw new Error('Resumen de logros de Steam no válido');
+    }
+    game.steamAchievements = { unlocked, total, syncedAt: now() };
+    game.updatedAt = now();
+    await this.save();
+    return { gameId: game.id, title: game.title, steamAppId: game.steamAppId, ...game.steamAchievements };
   }
   async dlc(id, { title, completed, notes = '' }) {
     const g = await this.find(id);

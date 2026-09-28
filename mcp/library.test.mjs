@@ -40,6 +40,24 @@ test('validation leaves existing record intact', async () => {
   assert.equal((await lib.games()).length, 1);
 });
 
+test('Steam achievement summary persists without changing manual progress or sessions', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'gamerhoard-achievements-'));
+  const file = join(dir, 'library.json');
+  const lib = new Library(file);
+  const { game } = await lib.add({ title: 'Portal 2', steamAppId: 620 });
+  await lib.update(game.id, { progressPercent: 55 });
+  const result = await lib.setSteamAchievements(game.id, 2, 3);
+  assert.equal(result.unlocked, 2);
+  assert.equal(result.total, 3);
+  assert.ok(result.syncedAt);
+  const reopened = await new Library(file).find(game.id);
+  assert.deepEqual(reopened.steamAchievements, { unlocked: 2, total: 3, syncedAt: result.syncedAt });
+  assert.equal(reopened.progressPercent, 55);
+  const before = await readFile(file, 'utf8');
+  await assert.rejects(lib.setSteamAchievements(game.id, 4, 3), /no válido/);
+  assert.equal(await readFile(file, 'utf8'), before);
+});
+
 test('legacy web export maps gamer fields', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'gamerhoard-'));
   const source = join(dir, 'old.json');
