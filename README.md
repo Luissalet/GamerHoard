@@ -1,32 +1,36 @@
 # GamerHoard
 
-Biblioteca **local** de videojuegos para usar desde Faustus mediante MCP stdio. No hay web, cuenta, dominio, Supabase ni servicio en segundo plano. Requiere Node.js 20 o posterior; no necesita `npm install`.
+[Español](README.es.md)
 
-## Conectar a Faustus
+A **local video game library** for Faustus, exposed through an MCP stdio server. It has no website, account, domain, Supabase dependency or permanent background service. It requires Node.js 20 or newer and does not need `npm install`.
 
-Faustus puede cargar [`faustus-plugin.json`](./faustus-plugin.json) con `GAMERHOARD_DIR` apuntando a este repositorio. Para un cliente MCP manual, configura `command: node` y `args: ["C:/ruta/GamerHoard/mcp/server.mjs"]`. Ejecuta `npm start` para probarlo por stdio; el cliente MCP lo iniciará normalmente por sí mismo.
+## Connect to Faustus
 
-La biblioteca se guarda en `~/.gamerhoard/library.json` (`C:\\Users\\<usuario>\\.gamerhoard\\library.json` en Windows). Puedes cambiar la ubicación con `GAMERHOARD_DATA_FILE` en el entorno del proceso MCP. Este archivo es la **única fuente de verdad** y no está en el repositorio. Cópialo para hacer una copia de seguridad; usa `gamer_export_json` para una exportación estructurada. Las exportaciones crean archivos nuevos y nunca sobreescriben.
+Faustus can load [`faustus-plugin.json`](faustus-plugin.json) with `GAMERHOARD_DIR` pointing to this repository. For a manual MCP client, use `command: node` and `args: ["C:/path/GamerHoard/mcp/server.mjs"]`. Run `npm start` to try the stdio server directly; an MCP client normally starts it on demand.
 
-## Herramientas
+The library lives at `~/.gamerhoard/library.json` (`C:\Users\<user>\.gamerhoard\library.json` on Windows). Set `GAMERHOARD_DATA_FILE` in the MCP process to use another location. This file is the **single source of truth** and is not part of the repository. Copy it for a backup or use `gamer_export_json` for a structured export. Exports create new files and never overwrite an existing one.
 
-- `gamer_list`, `gamer_get`: buscar y consultar la biblioteca, con filtros de estado, favorito y plataforma.
-- `gamer_add`, `gamer_update`: añadir manualmente y registrar estado, valoración 1–10, notas, favorito, plataformas propias, etiquetas, horas y progreso.
-- `gamer_dlc`: registrar expansiones y completarlas.
-- `gamer_log_session`, `gamer_sessions`: guardar sesiones locales por juego y consultar su historial. `sessionId` debe ser estable: repetirlo mediante `gamer_log_session` actualiza esa sesión en vez de sumar otra; corregir minutos aplica solo la diferencia al total. `playedAt` requiere ISO 8601 con zona horaria. En `gamer_sessions`, `id` es opcional para consultar toda la biblioteca; `from`/`to` aceptan `YYYY-MM-DD` como día UTC completo o ISO 8601 con zona horaria, con extremos inclusivos. `limit` limita las filas devueltas, mientras `total` y `minutes` cubren todas las sesiones filtradas.
-- `gamer_stats`, `gamer_backlog`: resumen y sugerencias deterministas de tus pendientes.
-- `gamer_search_catalog`, `gamer_add_from_catalog`: metadatos opcionales de RAWG. Configura `RAWG_API_KEY` en el entorno de Faustus para habilitarlos. La biblioteca funciona sin clave ni conexión.
-- `gamer_import_steam`: recibe un SteamID64 y una Steam Web API key **en esa llamada**; consulta la biblioteca pública y añade juegos y minutos jugados. La clave no se guarda en el JSON ni se escribe en logs. Los juegos ya presentes se conservan. Steam requiere Internet y que sus ajustes de privacidad permitan consultar la biblioteca.
-- `gamer_import_json`, `gamer_export_json`: importación aditiva y exportación. Acepta exportaciones de GamerHoard y el formato `watchhoard-export` de la antigua app; las entradas ya presentes se omiten.
+## Tools
 
-Estados: `backlog`, `playing`, `paused`, `completed`, `dropped`. Las sesiones se guardan en el JSON local y se incluyen en importación/exportación. El tiempo previo o importado se conserva como base y se suma al total de sesiones; las copias antiguas sin sesiones siguen siendo válidas. La importación de sesiones es aditiva: añade IDs ausentes y conserva los que ya existen, aunque la copia importada tenga una duración anterior. Para corregir una sesión existente, usa `gamer_log_session`. Una exportación que repite `sessionId` dentro del mismo juego se rechaza antes de modificar la biblioteca. Las operaciones no destructivas conservan los datos existentes. El código anterior de Expo y Supabase permanece recuperable en el historial Git, pero no forma parte del producto activo. No se toca el proyecto remoto ni los `.env` ignorados.
+- `gamer_list`, `gamer_get`: find and inspect games, with status, favorite and platform filters.
+- `gamer_add`, `gamer_update`: add games and update status, rating from 1–10, notes, favorites, owned platforms, tags, hours and progress.
+- `gamer_dlc`: record expansions and mark them complete.
+- `gamer_log_session`, `gamer_sessions`: record local play sessions and query their history. A stable `sessionId` makes repeats update the same session instead of adding time twice. Correcting minutes changes the total by the difference. `playedAt` requires ISO 8601 with a timezone. Filters accept UTC dates or ISO timestamps with inclusive endpoints; `limit` affects returned rows while `total` and `minutes` cover every matching session.
+- `gamer_stats`, `gamer_backlog`: summaries and deterministic backlog suggestions.
+- `gamer_search_catalog`, `gamer_add_from_catalog`: optional RAWG metadata. Set `RAWG_API_KEY` in Faustus's environment to enable these tools; the local library works without it.
+- `gamer_import_steam`: pass a SteamID64 and Steam Web API key **in the call** to import a public library and playtime. The key is not stored in JSON or logs. Existing games are preserved. Internet access and suitable Steam privacy settings are required.
+- `gamer_import_json`, `gamer_export_json`: additive import and export. GamerHoard exports and the old `watchhoard-export` format are accepted; existing entries are skipped.
 
-## Usarlo desde el chat
+Statuses are `backlog`, `playing`, `paused`, `completed` and `dropped`. Sessions are stored in the local JSON and included in imports and exports. Previous or imported playtime remains the base to which sessions add. An import adds missing session IDs but keeps existing ones; use `gamer_log_session` to correct an existing session. Repeated `sessionId` values within one game in an export are rejected before any change.
 
-Puedes decirle a Faustus: «Registra los 45 minutos que jugué ayer a Outer Wilds», «Corrige esa sesión: fueron 35 minutos» o «¿Cuánto he jugado esta semana y a qué juegos?». Faustus consulta la biblioteca y gestiona los identificadores de las sesiones; no necesitas escribirlos.
+## Use from a chat
 
-## Verificar
+Ask Faustus: “Log the 45 minutes I played Outer Wilds yesterday”, “Correct that session to 35 minutes”, or “What did I play this week, and for how long?” Faustus manages session IDs; you do not need to provide them.
 
-```powershell
+## Verify
+
+```sh
 npm test
 ```
+
+The former Expo and Supabase implementation remains recoverable in Git history but is not part of the active product. Remote projects and ignored `.env` files are untouched.
