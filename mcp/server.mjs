@@ -17,7 +17,7 @@ const tools = [
   ['gamer_sessions', 'Ver sesiones y total de minutos filtrado de un juego o de toda la biblioteca si se omite id.', object({ id: S, from: { type: 'string', description: 'Inicio inclusivo: día UTC YYYY-MM-DD o fecha/hora ISO 8601 con zona horaria.' }, to: { type: 'string', description: 'Fin inclusivo: día UTC YYYY-MM-DD completo o fecha/hora ISO 8601 con zona horaria.' }, limit: N })],
   ['gamer_stats', 'Estadísticas de la biblioteca local.', object({})],
   ['gamer_backlog', 'Sugerir juegos pendientes o pausados de la propia biblioteca.', object({ genre: S, platform: S, includePaused: B, limit: N })],
-  ['gamer_import_steam', 'Importar juegos y horas de Steam con una clave Web API de usuario. La clave no se guarda.', object({ steamId: S, apiKey: S }, ['steamId','apiKey'])],
+  ['gamer_import_steam', 'Importar juegos y horas de Steam con una clave Web API de usuario. Con syncExistingPlaytime=true actualiza las horas de juegos Steam existentes sin duplicar sesiones; conserva notas, estado y progreso. La clave no se guarda.', object({ steamId: S, apiKey: S, syncExistingPlaytime: B }, ['steamId','apiKey'])],
   ['gamer_sync_steam_achievements', 'Actualizar logros individuales y resumen de Steam para un juego. Pasa SteamID64 y Web API key en esta llamada; no se guardan. Sinónimos: logros, achievements, progreso Steam', object({ id: S, steamId: S, apiKey: S }, ['id','steamId','apiKey'])],
   ['gamer_import_json', 'Añadir juegos desde una exportación GamerHoard o la antigua exportación web, sin sustituir los existentes.', object({ path: S }, ['path'])],
   ['gamer_export_json', 'Crear una copia JSON completa en una ruta nueva. Nunca sobrescribe.', object({ path: S }, ['path'])],
@@ -33,7 +33,7 @@ async function rawg(path) {
   if (!response.ok) throw new Error(`RAWG respondió ${response.status}`);
   return response.json();
 }
-async function steamImport({ steamId, apiKey }) {
+async function steamImport({ steamId, apiKey, syncExistingPlaytime = false }) {
   if (!/^\d{17}$/.test(steamId) || !apiKey) throw new Error('Indica SteamID64 de 17 cifras y tu Steam Web API key');
   const url = new URL('https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/');
   url.searchParams.set('key', apiKey);
@@ -44,13 +44,22 @@ async function steamImport({ steamId, apiKey }) {
   const payload = await response.json();
   const games = payload?.response?.games;
   if (!Array.isArray(games)) throw new Error('Steam no devolvió juegos. Comprueba SteamID, clave y privacidad del perfil.');
-  let added = 0, existing = 0;
+  let added = 0, existing = 0, playtimeUpdated = 0, skippedUnlinked = 0;
   for (const game of games) {
     if (!game.name || !game.appid) continue;
-    const result = await db.add({ title: game.name, steamAppId: game.appid, ownedPlatforms: ['PC'], playtimeMinutes: game.playtime_forever || 0, state: game.playtime_forever ? 'paused' : 'backlog', coverUrl: `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg` });
-    if (result.added) added++; else existing++;
+    const minutes = Number(game.playtime_forever) || 0;
+    const result = await db.add({ title: game.name, steamAppId: game.appid, ownedPlatforms: ['PC'], playtimeMinutes: minutes, state: minutes ? 'paused' : 'backlog', coverUrl: `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/header.jpg` });
+    if (result.added) added++;
+    else {
+      existing++;
+      if (syncExistingPlaytime) {
+        if (result.game.steamAppId === game.appid) {
+          if ((await db.syncSteamPlaytime(result.game.id, game.appid, minutes)).updated) playtimeUpdated++;
+        } else skippedUnlinked++;
+      }
+    }
   }
-  return { total: games.length, added, existing };
+  return { total: games.length, added, existing, playtimeUpdated, skippedUnlinked };
 }
 async function steamAchievements({ id, steamId, apiKey }) {
   if (!/^\d{17}$/.test(steamId) || !apiKey) throw new Error('Indica SteamID64 de 17 cifras y tu Steam Web API key');

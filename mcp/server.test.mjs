@@ -74,3 +74,51 @@ test('stdio MCP handshake and tool calls persist across server runs', async () =
   assert.equal(JSON.parse(unavailable[0].result.content[0].text).available, false);
   assert.equal(await readFile(data, 'utf8'), saved, 'an unavailable Steam result keeps the previous snapshot');
 });
+
+test('Steam import opt-in refresh updates existing playtime once and preserves local work', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'gamerhoard-steam-'));
+  const data = join(dir, 'games.json');
+  const script = fileURLToPath(new URL('./server.mjs', import.meta.url));
+  const call = async (messages, minutes) => {
+    const child = spawn(process.execPath, ['--import', new URL('./mock-steam-fetch.mjs', import.meta.url).href, script], {
+      env: { ...process.env, GAMERHOARD_DATA_FILE: data, GAMERHOARD_MOCK_STEAM_JSON: JSON.stringify({ owned: { response: { games: [
+        { appid: 620, name: 'Portal 2', playtime_forever: minutes },
+      ] } } }) }, stdio: ['pipe', 'pipe', 'pipe'] });
+    let output = '', errors = '';
+    child.stdout.on('data', x => output += x);
+    child.stderr.on('data', x => errors += x);
+    for (const [index, message] of messages.entries()) child.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: index + 1, method: 'tools/call', params: message }) + '\n');
+    child.stdin.end();
+    await new Promise((resolve, reject) => { child.on('exit', code => code === 0 ? resolve() : reject(new Error(`exit ${code}: ${errors}`))); child.on('error', reject); });
+    assert.equal(errors, '');
+    return output.trim().split('\n').map(line => JSON.parse(JSON.parse(line).result.content[0].text));
+  };
+  const credentials = { steamId: '76561198000000000', apiKey: 'synthetic-test-key' };
+  const [first] = await call([{ name: 'gamer_import_steam', arguments: credentials }], 100);
+  assert.equal(first.added, 1);
+  await call([
+    { name: 'gamer_update', arguments: { id: 'steam:620', state: 'playing', notes: 'Keep this', progressPercent: 30 } },
+    { name: 'gamer_log_session', arguments: { id: 'steam:620', sessionId: 'portal:1', minutes: 40, playedAt: '2026-09-28T12:00:00Z' } },
+  ], 100);
+  const [preserved] = await call([{ name: 'gamer_import_steam', arguments: credentials }], 140);
+  assert.equal(preserved.playtimeUpdated, 0);
+  assert.equal(JSON.parse(await readFile(data, 'utf8')).games[0].playtimeMinutes, 140);
+  const [refreshed] = await call([{ name: 'gamer_import_steam', arguments: { ...credentials, syncExistingPlaytime: true } }], 140);
+  assert.equal(refreshed.playtimeUpdated, 1);
+  const saved = await readFile(data, 'utf8');
+  const game = JSON.parse(saved).games[0];
+  assert.equal(game.playtimeBaseMinutes, 100);
+  assert.equal(game.playtimeMinutes, 140);
+  assert.equal(game.steamPlaytimeMinutes, 140);
+  assert.equal(game.sessions.length, 1);
+  assert.equal(game.state, 'playing');
+  assert.equal(game.notes, 'Keep this');
+  assert.equal(game.progressPercent, 30);
+  assert.ok(!saved.includes(credentials.apiKey));
+  const [again] = await call([{ name: 'gamer_import_steam', arguments: { ...credentials, syncExistingPlaytime: true } }], 140);
+  assert.equal(again.playtimeUpdated, 0);
+  assert.equal(await readFile(data, 'utf8'), saved);
+  const [later] = await call([{ name: 'gamer_import_steam', arguments: { ...credentials, syncExistingPlaytime: true } }], 185);
+  assert.equal(later.playtimeUpdated, 1);
+  assert.equal(JSON.parse(await readFile(data, 'utf8')).games[0].playtimeMinutes, 185);
+});

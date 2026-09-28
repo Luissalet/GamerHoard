@@ -108,6 +108,21 @@ export class Library {
     next.updatedAt = now();
     Object.assign(g, next); await this.save(); return g;
   }
+  async syncSteamPlaytime(id, steamAppId, minutes) {
+    const game = await this.find(id);
+    if (game.steamAppId !== steamAppId) throw new Error('El Steam App ID no coincide con el juego');
+    const steamMinutes = finite(minutes, 'Steam playtimeMinutes');
+    if (steamMinutes === undefined) throw new Error('Faltan minutos de Steam');
+    const base = Math.max(0, steamMinutes - sessionTotal(game));
+    const total = base + sessionTotal(game);
+    if (game.playtimeBaseMinutes === base && game.playtimeMinutes === total && game.steamPlaytimeMinutes === steamMinutes) return { game, updated: false };
+    game.playtimeBaseMinutes = base;
+    game.playtimeMinutes = total;
+    game.steamPlaytimeMinutes = steamMinutes;
+    game.updatedAt = now();
+    await this.save();
+    return { game, updated: true };
+  }
   async setSteamAchievements(id, unlocked, total, items = null) {
     const game = await this.find(id);
     if (!game.steamAppId) throw new Error('Este juego no tiene Steam App ID');
