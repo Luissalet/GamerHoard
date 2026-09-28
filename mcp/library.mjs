@@ -108,16 +108,34 @@ export class Library {
     next.updatedAt = now();
     Object.assign(g, next); await this.save(); return g;
   }
-  async setSteamAchievements(id, unlocked, total) {
+  async setSteamAchievements(id, unlocked, total, items = null) {
     const game = await this.find(id);
     if (!game.steamAppId) throw new Error('Este juego no tiene Steam App ID');
     if (!Number.isInteger(unlocked) || !Number.isInteger(total) || total <= 0 || unlocked < 0 || unlocked > total) {
       throw new Error('Resumen de logros de Steam no válido');
     }
-    game.steamAchievements = { unlocked, total, syncedAt: now() };
+    if (items !== null && (!Array.isArray(items) || items.length !== total || items.some(item => !item.apiName || typeof item.unlocked !== 'boolean'))) {
+      throw new Error('Lista de logros de Steam no válida');
+    }
+    game.steamAchievements = { unlocked, total, syncedAt: now(), ...(items === null ? {} : { items }) };
     game.updatedAt = now();
     await this.save();
-    return { gameId: game.id, title: game.title, steamAppId: game.steamAppId, ...game.steamAchievements };
+    const { items: _items, ...summary } = game.steamAchievements;
+    return { gameId: game.id, title: game.title, steamAppId: game.steamAppId, ...summary };
+  }
+  async achievements(id, { unlocked, query = '', offset = 0, limit = 20 } = {}) {
+    const game = await this.find(id);
+    const start = finite(offset, 'offset', 0, 1000000) ?? 0;
+    const size = finite(limit, 'limit', 1, 100) ?? 20;
+    if (!Number.isInteger(start) || !Number.isInteger(size)) throw new Error('offset y limit deben ser enteros');
+    const snapshot = game.steamAchievements;
+    const q = str(query).toLocaleLowerCase();
+    const all = Array.isArray(snapshot?.items) ? snapshot.items : [];
+    const matches = all.filter(item => (unlocked === undefined || item.unlocked === unlocked) &&
+      (!q || [item.apiName, item.name, item.description].some(value => str(value).toLocaleLowerCase().includes(q))));
+    return { gameId: game.id, title: game.title, syncedAt: snapshot?.syncedAt || null,
+      available: Array.isArray(snapshot?.items), total: matches.length, offset: start,
+      achievements: matches.slice(start, start + size) };
   }
   async dlc(id, { title, completed, notes = '' }) {
     const g = await this.find(id);

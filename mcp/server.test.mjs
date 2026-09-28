@@ -31,12 +31,18 @@ test('stdio MCP handshake and tool calls persist across server runs', async () =
     { id: 5, method: 'tools/call', params: { name: 'gamer_sessions', arguments: { id: 'steam:620', from: '2026-09-28T00:00:00Z' } } },
     { id: 6, method: 'tools/call', params: { name: 'gamer_sessions', arguments: { from: '2026-09-28', to: '2026-09-28', limit: 1 } } },
     { id: 7, method: 'tools/call', params: { name: 'gamer_sync_steam_achievements', arguments: { id: 'steam:620', steamId: '76561198000000000', apiKey: 'synthetic-test-key' } } },
-  ], { playerstats: { success: true, achievements: [{ apiname: 'ONE', achieved: 1 }, { apiname: 'TWO', achieved: 0 }, { apiname: 'THREE', achieved: 1 }] } });
+    { id: 8, method: 'tools/call', params: { name: 'gamer_achievements', arguments: { id: 'steam:620', unlocked: false, query: 'second' } } },
+    { id: 9, method: 'tools/call', params: { name: 'gamer_get', arguments: { id: 'steam:620' } } },
+  ], { playerstats: { success: true, achievements: [{ apiname: 'ONE', achieved: 1, unlocktime: 1720000000 }, { apiname: 'TWO', achieved: 0 }, { apiname: 'THREE', achieved: 1 }] },
+    schema: { game: { availableGameStats: { achievements: [{ name: 'ONE', displayName: 'First', description: 'First task' }, { name: 'TWO', displayName: 'Second', description: 'Second task' }] } } } });
   assert.equal(first[0].result.serverInfo.name, 'gamerhoard');
   assert.ok(first[1].result.tools.some(t => t.name === 'gamer_stats'));
   assert.ok(first[1].result.tools.some(t => t.name === 'gamer_log_session'));
   assert.ok(first[1].result.tools.some(t => t.name === 'gamer_sessions'));
   assert.ok(first[1].result.tools.some(t => t.name === 'gamer_sync_steam_achievements'));
+  assert.ok(first[1].result.tools.some(t => t.name === 'gamer_achievements'));
+  assert.equal(first[1].result.tools.find(t => t.name === 'gamer_achievements').annotations.readOnlyHint, true);
+  assert.equal(first[1].result.tools.find(t => t.name === 'gamer_sync_steam_achievements').annotations.readOnlyHint, false);
   assert.equal(JSON.parse(first[2].result.content[0].text).game.title, 'Portal 2');
   assert.equal(JSON.parse(first[3].result.content[0].text).playtimeMinutes, 42);
   const history = JSON.parse(first[4].result.content[0].text);
@@ -49,9 +55,17 @@ test('stdio MCP handshake and tool calls persist across server runs', async () =
   assert.equal(achievementResult.unlocked, 2);
   assert.equal(achievementResult.total, 3);
   assert.equal(achievementResult.available, true);
+  const filtered = JSON.parse(first[7].result.content[0].text);
+  assert.equal(filtered.total, 1);
+  assert.equal(filtered.achievements[0].name, 'Second');
+  assert.equal(filtered.achievements[0].unlocked, false);
+  assert.equal(filtered.achievements[0].unlockedAt, null);
+  assert.equal(JSON.parse(first[8].result.content[0].text).steamAchievements.items, undefined);
   const saved = await readFile(data, 'utf8');
   assert.ok(!saved.includes('synthetic-test-key'));
   assert.equal(JSON.parse(saved).games[0].steamAchievements.unlocked, 2);
+  assert.equal(JSON.parse(saved).games[0].steamAchievements.items[0].name, 'First');
+  assert.equal(JSON.parse(saved).games[0].steamAchievements.items[2].name, 'THREE');
   const second = await run([{ id: 7, method: 'tools/call', params: { name: 'gamer_stats', arguments: {} } }]);
   assert.equal(JSON.parse(second[0].result.content[0].text).total, 1);
   assert.equal(JSON.parse(second[0].result.content[0].text).playtimeHours, 0.7);

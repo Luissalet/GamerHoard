@@ -7,6 +7,7 @@ const S = { type: 'string' }, N = { type: 'number' }, B = { type: 'boolean' }, A
 const tools = [
   ['gamer_list', 'Buscar y filtrar juegos de tu biblioteca local.', object({ query: S, state: { type: 'string', enum: ['backlog','playing','paused','completed','dropped'] }, favorite: B, platform: S, limit: N })],
   ['gamer_get', 'Ver una ficha con notas, progreso y DLC.', object({ id: S }, ['id'])],
+  ['gamer_achievements', 'Consultar logros individuales de Steam guardados localmente; filtrar por desbloqueados o texto y paginar.', object({ id: S, unlocked: B, query: S, offset: N, limit: N }, ['id'])],
   ['gamer_add', 'Añadir un juego manualmente sin Internet.', object({ title: S, state: S, rawgId: N, steamAppId: N, platforms: A, ownedPlatforms: A, genres: A, playtimeMinutes: N, released: S, coverUrl: S, description: S }, ['title'])],
   ['gamer_search_catalog', 'Buscar metadatos de videojuegos en RAWG. Requiere RAWG_API_KEY y conexión.', object({ query: S, limit: N }, ['query'])],
   ['gamer_add_from_catalog', 'Añadir por ID de RAWG con metadatos. Requiere RAWG_API_KEY y conexión.', object({ rawgId: N, state: S, ownedPlatforms: A }, ['rawgId'])],
@@ -17,10 +18,11 @@ const tools = [
   ['gamer_stats', 'Estadísticas de la biblioteca local.', object({})],
   ['gamer_backlog', 'Sugerir juegos pendientes o pausados de la propia biblioteca.', object({ genre: S, platform: S, includePaused: B, limit: N })],
   ['gamer_import_steam', 'Importar juegos y horas de Steam con una clave Web API de usuario. La clave no se guarda.', object({ steamId: S, apiKey: S }, ['steamId','apiKey'])],
-  ['gamer_sync_steam_achievements', 'Actualizar el resumen de logros de Steam para un juego de la biblioteca. Pasa SteamID64 y Web API key en esta llamada; no se guardan. Sinónimos: logros, achievements, progreso Steam', object({ id: S, steamId: S, apiKey: S }, ['id','steamId','apiKey'])],
+  ['gamer_sync_steam_achievements', 'Actualizar logros individuales y resumen de Steam para un juego. Pasa SteamID64 y Web API key en esta llamada; no se guardan. Sinónimos: logros, achievements, progreso Steam', object({ id: S, steamId: S, apiKey: S }, ['id','steamId','apiKey'])],
   ['gamer_import_json', 'Añadir juegos desde una exportación GamerHoard o la antigua exportación web, sin sustituir los existentes.', object({ path: S }, ['path'])],
   ['gamer_export_json', 'Crear una copia JSON completa en una ruta nueva. Nunca sobrescribe.', object({ path: S }, ['path'])],
-].map(([name, description, inputSchema]) => ({ name, description, inputSchema }));
+].map(([name, description, inputSchema]) => ({ name, description, inputSchema,
+  annotations: { readOnlyHint: ['gamer_list', 'gamer_get', 'gamer_achievements', 'gamer_search_catalog', 'gamer_sessions', 'gamer_stats', 'gamer_backlog'].includes(name) } }));
 
 async function rawg(path) {
   const key = process.env.RAWG_API_KEY;
@@ -54,7 +56,7 @@ async function steamAchievements({ id, steamId, apiKey }) {
   if (!/^\d{17}$/.test(steamId) || !apiKey) throw new Error('Indica SteamID64 de 17 cifras y tu Steam Web API key');
   const game = await db.find(id);
   if (!game.steamAppId) throw new Error('Este juego no tiene Steam App ID');
-  const url = new URL('https://partner.steam-api.com/ISteamUserStats/GetPlayerAchievements/v1/');
+  const url = new URL('https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/');
   url.searchParams.set('key', apiKey);
   url.searchParams.set('steamid', steamId);
   url.searchParams.set('appid', String(game.steamAppId));
@@ -68,12 +70,38 @@ async function steamAchievements({ id, steamId, apiKey }) {
   }
   const total = stats.achievements.length;
   const unlocked = stats.achievements.filter((item) => item?.achieved === 1 || item?.achieved === true).length;
-  return { available: true, ...(await db.setSteamAchievements(game.id, unlocked, total)) };
+  const schemaUrl = new URL('https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/');
+  schemaUrl.searchParams.set('key', apiKey);
+  schemaUrl.searchParams.set('appid', String(game.steamAppId));
+  let names = new Map();
+  try {
+    const schemaResponse = await fetch(schemaUrl, { signal: AbortSignal.timeout(20000) });
+    if (schemaResponse.ok) {
+      const schema = (await schemaResponse.json())?.game?.availableGameStats?.achievements;
+      if (Array.isArray(schema)) names = new Map(schema.filter(item => typeof item.name === 'string').map(item => [item.name, item]));
+    }
+  } catch { /* Player achievements still work without localized schema. */ }
+  const items = stats.achievements.map(item => {
+    const apiName = String(item.apiname || '');
+    const detail = names.get(apiName);
+    const unlocked = item.achieved === 1 || item.achieved === true;
+    const seconds = Number(item.unlocktime);
+    return { apiName, name: detail?.displayName || item.name || apiName,
+      description: detail?.description || item.description || '', unlocked,
+      unlockedAt: unlocked && Number.isFinite(seconds) && seconds > 0 ? new Date(seconds * 1000).toISOString() : null };
+  });
+  return { available: true, ...(await db.setSteamAchievements(game.id, unlocked, total, items)) };
+}
+function compactGame(game) {
+  if (!game?.steamAchievements?.items) return game;
+  const { items: _items, ...summary } = game.steamAchievements;
+  return { ...game, steamAchievements: summary };
 }
 export async function call(name, a = {}) {
   switch (name) {
-    case 'gamer_list': return db.list(a);
-    case 'gamer_get': return db.find(a.id);
+    case 'gamer_list': { const result = await db.list(a); return { ...result, games: result.games.map(compactGame) }; }
+    case 'gamer_get': return compactGame(await db.find(a.id));
+    case 'gamer_achievements': { const { id, ...filters } = a; return db.achievements(id, filters); }
     case 'gamer_add': return db.add(a);
     case 'gamer_search_catalog': {
       const data = await rawg(`/games?search=${encodeURIComponent(a.query)}&page_size=${Math.min(20, Math.max(1, Number(a.limit) || 10))}`);
@@ -88,7 +116,7 @@ export async function call(name, a = {}) {
     case 'gamer_log_session': { const { id, ...session } = a; return db.logSession(id, session); }
     case 'gamer_sessions': { const { id, ...filters } = a; return db.sessions(id, filters); }
     case 'gamer_stats': return db.stats();
-    case 'gamer_backlog': return db.recommend(a);
+    case 'gamer_backlog': return (await db.recommend(a)).map(compactGame);
     case 'gamer_import_steam': return steamImport(a);
     case 'gamer_sync_steam_achievements': return steamAchievements(a);
     case 'gamer_import_json': return db.importFrom(a.path);

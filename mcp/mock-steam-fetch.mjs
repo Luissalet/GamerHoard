@@ -1,13 +1,15 @@
 // Loaded only by the stdio MCP test subprocess. It never contacts Steam.
 globalThis.fetch = async (url) => {
   const parsed = new URL(url);
-  if (parsed.origin !== 'https://partner.steam-api.com' ||
-      parsed.pathname !== '/ISteamUserStats/GetPlayerAchievements/v1/' ||
-      parsed.searchParams.get('steamid') !== '76561198000000000' ||
+  if (parsed.origin !== 'https://api.steampowered.com' ||
+      !['/ISteamUserStats/GetPlayerAchievements/v1/', '/ISteamUserStats/GetSchemaForGame/v2/'].includes(parsed.pathname) ||
+      (parsed.pathname.includes('GetPlayerAchievements') && parsed.searchParams.get('steamid') !== '76561198000000000') ||
       parsed.searchParams.get('appid') !== '620' ||
       parsed.searchParams.get('key') !== 'synthetic-test-key') {
     throw new Error('Unexpected Steam request');
   }
-  return new Response(process.env.GAMERHOARD_MOCK_STEAM_JSON,
+  const payload = JSON.parse(process.env.GAMERHOARD_MOCK_STEAM_JSON);
+  return new Response(JSON.stringify(parsed.pathname.includes('GetSchemaForGame') ?
+    (payload.schema || { game: {} }) : payload),
     { status: 200, headers: { 'Content-Type': 'application/json' } });
 };
