@@ -16,13 +16,14 @@ const tools = [
   ['gamer_log_session', 'Crear o corregir una sesión. Repetir sessionId no suma tiempo dos veces.', object({ id: S, sessionId: { type: 'string', description: 'Identificador estable y único de esta sesión dentro del juego.' }, minutes: { type: 'number', description: 'Duración absoluta de la sesión en minutos; al corregir, indica el nuevo total.' }, playedAt: { type: 'string', description: 'Fecha y hora ISO 8601 con zona horaria, por ejemplo 2026-09-28T12:00:00Z.' }, notes: S }, ['id','sessionId','minutes','playedAt'])],
   ['gamer_sessions', 'Ver sesiones y total de minutos filtrado de un juego o de toda la biblioteca si se omite id.', object({ id: S, from: { type: 'string', description: 'Inicio inclusivo: día UTC YYYY-MM-DD o fecha/hora ISO 8601 con zona horaria.' }, to: { type: 'string', description: 'Fin inclusivo: día UTC YYYY-MM-DD completo o fecha/hora ISO 8601 con zona horaria.' }, limit: N })],
   ['gamer_stats', 'Estadísticas de la biblioteca local.', object({})],
+  ['gamer_activity', 'Resumen de actividad o replay por período: minutos y sesiones por juego y día UTC. Solo sesiones fechadas; excluye horas históricas importadas. limit recorta juegos, nunca totales ni días.', object({ from: { type: 'string', description: 'Inicio inclusivo: día UTC YYYY-MM-DD o ISO 8601 con zona horaria.' }, to: { type: 'string', description: 'Fin inclusivo: día UTC completo o ISO 8601 con zona horaria.' }, limit: { type: 'integer', minimum: 1, maximum: 100, description: 'Máximo de juegos en el ranking; por defecto 10.' } })],
   ['gamer_backlog', 'Sugerir juegos pendientes o pausados de la propia biblioteca.', object({ genre: S, platform: S, includePaused: B, limit: N })],
   ['gamer_import_steam', 'Importar juegos y horas de Steam con una clave Web API de usuario. Con syncExistingPlaytime=true actualiza las horas de juegos Steam existentes sin duplicar sesiones; conserva notas, estado y progreso. La clave no se guarda.', object({ steamId: S, apiKey: S, syncExistingPlaytime: B }, ['steamId','apiKey'])],
   ['gamer_sync_steam_achievements', 'Actualizar logros individuales y resumen de Steam para un juego. Pasa SteamID64 y Web API key en esta llamada; no se guardan. Sinónimos: logros, achievements, progreso Steam', object({ id: S, steamId: S, apiKey: S }, ['id','steamId','apiKey'])],
   ['gamer_import_json', 'Añadir juegos desde una exportación GamerHoard o la antigua exportación web, sin sustituir los existentes.', object({ path: S }, ['path'])],
   ['gamer_export_json', 'Crear una copia JSON completa en una ruta nueva. Nunca sobrescribe.', object({ path: S }, ['path'])],
 ].map(([name, description, inputSchema]) => ({ name, description, inputSchema,
-  annotations: { readOnlyHint: ['gamer_list', 'gamer_get', 'gamer_achievements', 'gamer_search_catalog', 'gamer_sessions', 'gamer_stats', 'gamer_backlog'].includes(name) } }));
+  annotations: { readOnlyHint: ['gamer_list', 'gamer_get', 'gamer_achievements', 'gamer_search_catalog', 'gamer_sessions', 'gamer_stats', 'gamer_activity', 'gamer_backlog'].includes(name) } }));
 
 async function rawg(path) {
   const key = process.env.RAWG_API_KEY;
@@ -125,6 +126,7 @@ export async function call(name, a = {}) {
     case 'gamer_log_session': { const { id, ...session } = a; return db.logSession(id, session); }
     case 'gamer_sessions': { const { id, ...filters } = a; return db.sessions(id, filters); }
     case 'gamer_stats': return db.stats();
+    case 'gamer_activity': return db.activity(a);
     case 'gamer_backlog': return (await db.recommend(a)).map(compactGame);
     case 'gamer_import_steam': return steamImport(a);
     case 'gamer_sync_steam_achievements': return steamAchievements(a);

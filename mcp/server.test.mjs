@@ -33,6 +33,8 @@ test('stdio MCP handshake and tool calls persist across server runs', async () =
     { id: 7, method: 'tools/call', params: { name: 'gamer_sync_steam_achievements', arguments: { id: 'steam:620', steamId: '76561198000000000', apiKey: 'synthetic-test-key' } } },
     { id: 8, method: 'tools/call', params: { name: 'gamer_achievements', arguments: { id: 'steam:620', unlocked: false, query: 'second' } } },
     { id: 9, method: 'tools/call', params: { name: 'gamer_get', arguments: { id: 'steam:620' } } },
+    { id: 10, method: 'tools/call', params: { name: 'gamer_activity', arguments: { from: '2026-09-28', to: '2026-09-28', limit: 1 } } },
+    { id: 11, method: 'tools/call', params: { name: 'gamer_activity', arguments: { from: '2026-09-29', to: '2026-09-28' } } },
   ], { playerstats: { success: true, achievements: [{ apiname: 'ONE', achieved: 1, unlocktime: 1720000000 }, { apiname: 'TWO', achieved: 0 }, { apiname: 'THREE', achieved: 1 }] },
     schema: { game: { availableGameStats: { achievements: [{ name: 'ONE', displayName: 'First', description: 'First task' }, { name: 'TWO', displayName: 'Second', description: 'Second task' }] } } } });
   assert.equal(first[0].result.serverInfo.name, 'gamerhoard');
@@ -43,6 +45,12 @@ test('stdio MCP handshake and tool calls persist across server runs', async () =
   assert.ok(first[1].result.tools.some(t => t.name === 'gamer_achievements'));
   assert.equal(first[1].result.tools.find(t => t.name === 'gamer_achievements').annotations.readOnlyHint, true);
   assert.equal(first[1].result.tools.find(t => t.name === 'gamer_sync_steam_achievements').annotations.readOnlyHint, false);
+  assert.equal(first[1].result.tools.find(t => t.name === 'gamer_activity').annotations.readOnlyHint, true);
+  const recap = JSON.parse(first[9].result.content[0].text);
+  assert.deepEqual(recap.totals, { minutes: 42, sessions: 1, games: 1, days: 1 });
+  assert.deepEqual(recap.games, [{ gameId: 'steam:620', title: 'Portal 2', minutes: 42, sessions: 1 }]);
+  assert.equal(first[10].result.isError, true);
+  assert.match(first[10].result.content[0].text, /from no puede/);
   assert.equal(JSON.parse(first[2].result.content[0].text).game.title, 'Portal 2');
   assert.equal(JSON.parse(first[3].result.content[0].text).playtimeMinutes, 42);
   const history = JSON.parse(first[4].result.content[0].text);

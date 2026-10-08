@@ -27,6 +27,8 @@ Estados: `backlog`, `playing`, `paused`, `completed`, `dropped`. Las sesiones se
 
 ## Usarlo desde el chat
 
+`gamer_activity` crea un resumen local entre fechas inclusivas: minutos y sesiones por juego, ranking y días UTC. Solo cuenta sesiones fechadas; las horas históricas importadas no tienen fecha y quedan fuera. `limit` (1–100, 10 por defecto) recorta el ranking, pero los totales y días incluyen todo el período. Corregir una sesión se refleja en el siguiente resumen sin duplicarla. [Detalles y ejemplos](docs/ACTIVITY.md).
+
 Puedes decirle a Faustus: «Registra los 45 minutos que jugué ayer a Outer Wilds», «Corrige esa sesión: fueron 35 minutos» o «¿Cuánto he jugado esta semana y a qué juegos?». Faustus consulta la biblioteca y gestiona los identificadores de las sesiones; no necesitas escribirlos.
 
 ## Verificar

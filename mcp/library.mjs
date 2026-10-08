@@ -200,6 +200,35 @@ export class Library {
     const tally = field => Object.entries(games.flatMap(g => g[field]).reduce((a, x) => (a[x] = (a[x] || 0) + 1, a), {})).sort((a,b) => b[1]-a[1]);
     return { total: games.length, byState, favorites: games.filter(g => g.favorite).length, playtimeHours: Math.round(games.reduce((n,g) => n + g.playtimeMinutes, 0) / 60 * 10) / 10, averageRating: rated.length ? Math.round(rated.reduce((n,g) => n + g.rating, 0) / rated.length * 10) / 10 : null, dlcs: { total: games.reduce((n,g) => n + g.dlcs.length, 0), completed: games.reduce((n,g) => n + g.dlcs.filter(d => d.completed).length, 0) }, genres: tally('genres'), ownedPlatforms: tally('ownedPlatforms') };
   }
+  async activity({ from, to, limit = 10 } = {}) {
+    const fromDate = from === undefined ? null : filterDate(from, 'from');
+    const toDate = to === undefined ? null : filterDate(to, 'to', true);
+    if (fromDate && toDate && fromDate > toDate) throw new Error('from no puede ser posterior a to');
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('limit debe ser un entero entre 1 y 100');
+    const byGame = [], byDay = new Map();
+    let minutes = 0, sessions = 0;
+    for (const game of await this.games()) {
+      const matches = (Array.isArray(game.sessions) ? game.sessions : [])
+        .filter(s => (!fromDate || s.playedAt >= fromDate) && (!toDate || s.playedAt <= toDate));
+      if (!matches.length) continue;
+      const gameMinutes = matches.reduce((sum, s) => sum + s.minutes, 0);
+      byGame.push({ gameId: game.id, title: game.title, minutes: gameMinutes, sessions: matches.length });
+      minutes += gameMinutes;
+      sessions += matches.length;
+      for (const session of matches) {
+        const date = session.playedAt.slice(0, 10);
+        const day = byDay.get(date) || { date, minutes: 0, sessions: 0 };
+        day.minutes += session.minutes;
+        day.sessions++;
+        byDay.set(date, day);
+      }
+    }
+    byGame.sort((a, b) => b.minutes - a.minutes || a.title.localeCompare(b.title, 'en') || a.gameId.localeCompare(b.gameId, 'en'));
+    return { source: 'logged_sessions', period: { from: fromDate, to: toDate, timezone: 'UTC' },
+      totals: { minutes, sessions, games: byGame.length, days: byDay.size },
+      games: byGame.slice(0, limit), gamesTruncated: byGame.length > limit,
+      days: [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date)) };
+  }
   async recommend({ genre, platform, includePaused = true, limit = 5 } = {}) {
     const games = (await this.games()).filter(g => (g.state === 'backlog' || (includePaused && g.state === 'paused')) && (!genre || g.genres.some(x => x.toLocaleLowerCase() === genre.toLocaleLowerCase())) && (!platform || g.ownedPlatforms.some(x => x.toLocaleLowerCase() === platform.toLocaleLowerCase())));
     return games.sort((a,b) => (Number(b.favorite)*3 + (b.rating || 0)/10 + Number(b.state === 'paused')) - (Number(a.favorite)*3 + (a.rating || 0)/10 + Number(a.state === 'paused'))).slice(0, Math.min(20, Math.max(1, Number(limit) || 5)));
