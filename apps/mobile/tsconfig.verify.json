@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [".expo", "node_modules"]
+}

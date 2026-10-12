@@ -3,9 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Local video game library for Faustus via MCP stdio",
+  "description": "Local single-user video game library: web app, Faustus MCP tools and a native app over the same library",
+  "workspaces": [
+    "apps/mobile"
+  ],
   "scripts": {
     "start": "node mcp/server.mjs",
+    "web": "npm run web --workspace @gamerhoard/mobile",
+    "typecheck": "npm run typecheck --workspace @gamerhoard/mobile",
     "test": "node --test"
   },
   "engines": { "node": ">=20" }

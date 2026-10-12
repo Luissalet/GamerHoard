@@ -1,0 +1,3983 @@
+{
+  "generatedAt": "2026-07-24T13:36:14.035Z",
+  "repo": "GamerHoard",
+  "stats": {
+    "routes": 29,
+    "layouts": 4,
+    "modules": 65,
+    "methods": 58,
+    "migrations": 14,
+    "tables": 41,
+    "apis": 4,
+    "functions": 1,
+    "edges": 280,
+    "languages": 2,
+    "i18nKeys": 641
+  },
+  "nodes": [
+    {
+      "id": "api:rawg",
+      "type": "api",
+      "area": "api",
+      "label": "RAWG",
+      "host": "api.rawg.io",
+      "keyless": false,
+      "desc": "Primary game metadata: games, DLCs, genres, platforms, stores (where to play), Metacritic, screenshots, similar. Free key. Cached (mem + disk, 24h).",
+      "deg": 1
+    },
+    {
+      "id": "api:steam",
+      "type": "api",
+      "area": "api",
+      "label": "Steam",
+      "host": "steampowered.com",
+      "keyless": false,
+      "desc": "Library import (owned games + playtime) via the steam-auth Edge Function — \"Sign in through Steam\" (OpenID). Also store links + CDN header images. Key is a function secret, never in the client.",
+      "deg": 2
+    },
+    {
+      "id": "api:supabase",
+      "type": "api",
+      "area": "api",
+      "label": "Supabase",
+      "host": "*.supabase.co",
+      "keyless": false,
+      "desc": "Cloud backend: Postgres + Auth + Storage + Edge Functions. Default backend (cloud-first; login always required).",
+      "deg": 6
+    },
+    {
+      "id": "api:tmdb",
+      "type": "api",
+      "area": "api",
+      "label": "TMDB (legacy)",
+      "host": "image.tmdb.org",
+      "keyless": false,
+      "desc": "Vestigial from Watch Hoard. src/tmdb.ts is a shim re-exporting rawg.ts; only the image-URL helper lingers in packages/core.",
+      "deg": 2
+    },
+    {
+      "id": "route:(tabs)/explore.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/explore",
+      "file": "apps/mobile/app/(tabs)/explore.tsx",
+      "url": "/explore",
+      "group": "tabs",
+      "dynamic": false,
+      "loc": 456,
+      "desc": "",
+      "deg": 9
+    },
+    {
+      "id": "route:(tabs)/index.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/ (home)",
+      "file": "apps/mobile/app/(tabs)/index.tsx",
+      "url": "/",
+      "group": "tabs",
+      "dynamic": false,
+      "loc": 382,
+      "desc": "",
+      "deg": 11
+    },
+    {
+      "id": "route:(tabs)/movies.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/movies",
+      "file": "apps/mobile/app/(tabs)/movies.tsx",
+      "url": "/movies",
+      "group": "tabs",
+      "dynamic": false,
+      "loc": 263,
+      "desc": "",
+      "deg": 8
+    },
+    {
+      "id": "route:(tabs)/profile.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/profile",
+      "file": "apps/mobile/app/(tabs)/profile.tsx",
+      "url": "/profile",
+      "group": "tabs",
+      "dynamic": false,
+      "loc": 172,
+      "desc": "",
+      "deg": 11
+    },
+    {
+      "id": "route:(tabs)/_layout.tsx",
+      "type": "route",
+      "kind": "layout",
+      "area": "route",
+      "label": "(tabs)/_layout.tsx",
+      "file": "apps/mobile/app/(tabs)/_layout.tsx",
+      "url": null,
+      "group": "tabs",
+      "dynamic": false,
+      "loc": 37,
+      "desc": "",
+      "deg": 1
+    },
+    {
+      "id": "route:+html.tsx",
+      "type": "route",
+      "kind": "special",
+      "area": "route",
+      "label": "+html.tsx",
+      "file": "apps/mobile/app/+html.tsx",
+      "url": null,
+      "group": null,
+      "dynamic": false,
+      "loc": 33,
+      "desc": "",
+      "deg": 0
+    },
+    {
+      "id": "route:+not-found.tsx",
+      "type": "route",
+      "kind": "special",
+      "area": "route",
+      "label": "+not-found.tsx",
+      "file": "apps/mobile/app/+not-found.tsx",
+      "url": null,
+      "group": null,
+      "dynamic": false,
+      "loc": 28,
+      "desc": "",
+      "deg": 1
+    },
+    {
+      "id": "route:account.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/account",
+      "file": "apps/mobile/app/account.tsx",
+      "url": "/account",
+      "group": null,
+      "dynamic": false,
+      "loc": 304,
+      "desc": "",
+      "deg": 6
+    },
+    {
+      "id": "route:badges.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/badges",
+      "file": "apps/mobile/app/badges.tsx",
+      "url": "/badges",
+      "group": null,
+      "dynamic": false,
+      "loc": 57,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "route:blocked.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/blocked",
+      "file": "apps/mobile/app/blocked.tsx",
+      "url": "/blocked",
+      "group": null,
+      "dynamic": false,
+      "loc": 77,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "route:calendar.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/calendar",
+      "file": "apps/mobile/app/calendar.tsx",
+      "url": "/calendar",
+      "group": null,
+      "dynamic": false,
+      "loc": 197,
+      "desc": "",
+      "deg": 5
+    },
+    {
+      "id": "route:company/[id].tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/company/[id]",
+      "file": "apps/mobile/app/company/[id].tsx",
+      "url": "/company/[id]",
+      "group": null,
+      "dynamic": true,
+      "loc": 100,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "route:discover/[kind]/[id].tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/discover/[kind]/[id]",
+      "file": "apps/mobile/app/discover/[kind]/[id].tsx",
+      "url": "/discover/[kind]/[id]",
+      "group": null,
+      "dynamic": true,
+      "loc": 3,
+      "desc": "",
+      "deg": 0
+    },
+    {
+      "id": "route:donate.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/donate",
+      "file": "apps/mobile/app/donate.tsx",
+      "url": "/donate",
+      "group": null,
+      "dynamic": false,
+      "loc": 33,
+      "desc": "",
+      "deg": 1
+    },
+    {
+      "id": "route:episode/[key].tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/episode/[key]",
+      "file": "apps/mobile/app/episode/[key].tsx",
+      "url": "/episode/[key]",
+      "group": null,
+      "dynamic": true,
+      "loc": 26,
+      "desc": "Legacy episode route from the Watch Hoard base.",
+      "deg": 1
+    },
+    {
+      "id": "route:follows.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/follows",
+      "file": "apps/mobile/app/follows.tsx",
+      "url": "/follows",
+      "group": null,
+      "dynamic": false,
+      "loc": 66,
+      "desc": "",
+      "deg": 2
+    },
+    {
+      "id": "route:guidelines.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/guidelines",
+      "file": "apps/mobile/app/guidelines.tsx",
+      "url": "/guidelines",
+      "group": null,
+      "dynamic": false,
+      "loc": 53,
+      "desc": "",
+      "deg": 1
+    },
+    {
+      "id": "route:history.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/history",
+      "file": "apps/mobile/app/history.tsx",
+      "url": "/history",
+      "group": null,
+      "dynamic": false,
+      "loc": 80,
+      "desc": "",
+      "deg": 5
+    },
+    {
+      "id": "route:import.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/import",
+      "file": "apps/mobile/app/import.tsx",
+      "url": "/import",
+      "group": null,
+      "dynamic": false,
+      "loc": 167,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "route:language.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/language",
+      "file": "apps/mobile/app/language.tsx",
+      "url": "/language",
+      "group": null,
+      "dynamic": false,
+      "loc": 49,
+      "desc": "",
+      "deg": 2
+    },
+    {
+      "id": "route:list/[id].tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/list/[id]",
+      "file": "apps/mobile/app/list/[id].tsx",
+      "url": "/list/[id]",
+      "group": null,
+      "dynamic": true,
+      "loc": 122,
+      "desc": "",
+      "deg": 4
+    },
+    {
+      "id": "route:moderation.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/moderation",
+      "file": "apps/mobile/app/moderation.tsx",
+      "url": "/moderation",
+      "group": null,
+      "dynamic": false,
+      "loc": 166,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "route:movie/[id].tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/movie/[id]",
+      "file": "apps/mobile/app/movie/[id].tsx",
+      "url": "/movie/[id]",
+      "group": null,
+      "dynamic": true,
+      "loc": 26,
+      "desc": "Legacy movie route from the Watch Hoard base.",
+      "deg": 1
+    },
+    {
+      "id": "route:notifications.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/notifications",
+      "file": "apps/mobile/app/notifications.tsx",
+      "url": "/notifications",
+      "group": null,
+      "dynamic": false,
+      "loc": 88,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "route:person/[id].tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/person/[id]",
+      "file": "apps/mobile/app/person/[id].tsx",
+      "url": "/person/[id]",
+      "group": null,
+      "dynamic": true,
+      "loc": 122,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "route:requests.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/requests",
+      "file": "apps/mobile/app/requests.tsx",
+      "url": "/requests",
+      "group": null,
+      "dynamic": false,
+      "loc": 72,
+      "desc": "",
+      "deg": 2
+    },
+    {
+      "id": "route:reset-password.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/reset-password",
+      "file": "apps/mobile/app/reset-password.tsx",
+      "url": "/reset-password",
+      "group": null,
+      "dynamic": false,
+      "loc": 99,
+      "desc": "",
+      "deg": 2
+    },
+    {
+      "id": "route:settings.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/settings",
+      "file": "apps/mobile/app/settings.tsx",
+      "url": "/settings",
+      "group": null,
+      "dynamic": false,
+      "loc": 203,
+      "desc": "",
+      "deg": 8
+    },
+    {
+      "id": "route:show/[id].tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/show/[id]",
+      "file": "apps/mobile/app/show/[id].tsx",
+      "url": "/show/[id]",
+      "group": null,
+      "dynamic": true,
+      "loc": 315,
+      "desc": "",
+      "deg": 12
+    },
+    {
+      "id": "route:stats.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/stats",
+      "file": "apps/mobile/app/stats.tsx",
+      "url": "/stats",
+      "group": null,
+      "dynamic": false,
+      "loc": 170,
+      "desc": "",
+      "deg": 5
+    },
+    {
+      "id": "route:tvtime-comments.tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/tvtime-comments",
+      "file": "apps/mobile/app/tvtime-comments.tsx",
+      "url": "/tvtime-comments",
+      "group": null,
+      "dynamic": false,
+      "loc": 99,
+      "desc": "",
+      "deg": 4
+    },
+    {
+      "id": "route:u/[handle].tsx",
+      "type": "route",
+      "kind": "route",
+      "area": "route",
+      "label": "/u/[handle]",
+      "file": "apps/mobile/app/u/[handle].tsx",
+      "url": "/u/[handle]",
+      "group": null,
+      "dynamic": true,
+      "loc": 241,
+      "desc": "",
+      "deg": 6
+    },
+    {
+      "id": "route:_layout.tsx",
+      "type": "route",
+      "kind": "layout",
+      "area": "route",
+      "label": "_layout.tsx",
+      "file": "apps/mobile/app/_layout.tsx",
+      "url": null,
+      "group": null,
+      "dynamic": false,
+      "loc": 68,
+      "desc": "",
+      "deg": 8
+    },
+    {
+      "id": "mod:apps/mobile/src/auth/AuthFlow.tsx",
+      "type": "module",
+      "area": "auth",
+      "label": "auth/AuthFlow.tsx",
+      "file": "apps/mobile/src/auth/AuthFlow.tsx",
+      "loc": 18,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "mod:apps/mobile/src/auth/AuthScreen.tsx",
+      "type": "module",
+      "area": "auth",
+      "label": "auth/AuthScreen.tsx",
+      "file": "apps/mobile/src/auth/AuthScreen.tsx",
+      "loc": 326,
+      "desc": "",
+      "deg": 4
+    },
+    {
+      "id": "mod:apps/mobile/src/auth/Landing.tsx",
+      "type": "module",
+      "area": "auth",
+      "label": "auth/Landing.tsx",
+      "file": "apps/mobile/src/auth/Landing.tsx",
+      "loc": 92,
+      "desc": "",
+      "deg": 2
+    },
+    {
+      "id": "mod:apps/mobile/src/auth/session.tsx",
+      "type": "module",
+      "area": "auth",
+      "label": "auth/session.tsx",
+      "file": "apps/mobile/src/auth/session.tsx",
+      "loc": 149,
+      "desc": "",
+      "deg": 12
+    },
+    {
+      "id": "mod:apps/mobile/src/auth/Suspended.tsx",
+      "type": "module",
+      "area": "auth",
+      "label": "auth/Suspended.tsx",
+      "file": "apps/mobile/src/auth/Suspended.tsx",
+      "loc": 36,
+      "desc": "",
+      "deg": 4
+    },
+    {
+      "id": "mod:apps/mobile/src/categories.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "categories.ts",
+      "file": "apps/mobile/src/categories.ts",
+      "loc": 38,
+      "desc": "",
+      "deg": 6
+    },
+    {
+      "id": "mod:apps/mobile/src/components.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "components.tsx",
+      "file": "apps/mobile/src/components.tsx",
+      "loc": 80,
+      "desc": "",
+      "deg": 2
+    },
+    {
+      "id": "mod:apps/mobile/src/data.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "data.ts",
+      "file": "apps/mobile/src/data.ts",
+      "loc": 43,
+      "desc": "Domain types (mirror the Postgres schema) + demo data.",
+      "deg": 0
+    },
+    {
+      "id": "mod:apps/mobile/src/dates.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "dates.ts",
+      "file": "apps/mobile/src/dates.ts",
+      "loc": 40,
+      "desc": "Date-only helpers with LOCAL-day semantics.",
+      "deg": 7
+    },
+    {
+      "id": "mod:apps/mobile/src/db/index.ts",
+      "type": "module",
+      "area": "data",
+      "label": "db/index.ts",
+      "file": "apps/mobile/src/db/index.ts",
+      "loc": 11,
+      "desc": "Native (iOS/Android) data source.",
+      "deg": 24
+    },
+    {
+      "id": "mod:apps/mobile/src/db/index.web.ts",
+      "type": "module",
+      "area": "data",
+      "label": "db/index.web.ts",
+      "file": "apps/mobile/src/db/index.web.ts",
+      "loc": 10,
+      "desc": "Web data source. Never imports ./local (keeps expo-sqlite out of the web bundle). local (default) -> in-memory (MemorySource); supabase -> cloud (see ./supabase).",
+      "deg": 4
+    },
+    {
+      "id": "mod:apps/mobile/src/db/local.ts",
+      "type": "module",
+      "area": "data",
+      "label": "db/local.ts",
+      "file": "apps/mobile/src/db/local.ts",
+      "loc": 275,
+      "desc": "",
+      "deg": 4
+    },
+    {
+      "id": "mod:apps/mobile/src/db/memory.ts",
+      "type": "module",
+      "area": "data",
+      "label": "db/memory.ts",
+      "file": "apps/mobile/src/db/memory.ts",
+      "loc": 350,
+      "desc": "Web / SSR fallback: same DataSource contract, backed by the seed JSON held in memory.",
+      "deg": 3
+    },
+    {
+      "id": "mod:apps/mobile/src/db/schema.ts",
+      "type": "module",
+      "area": "data",
+      "label": "db/schema.ts",
+      "file": "apps/mobile/src/db/schema.ts",
+      "loc": 52,
+      "desc": "Local (on-device) SQLite schema — a pragmatic mirror of the Postgres schema in supabase/migrations.",
+      "deg": 1
+    },
+    {
+      "id": "mod:apps/mobile/src/db/supabase.ts",
+      "type": "module",
+      "area": "data",
+      "label": "db/supabase.ts",
+      "file": "apps/mobile/src/db/supabase.ts",
+      "loc": 433,
+      "desc": "",
+      "deg": 6
+    },
+    {
+      "id": "mod:apps/mobile/src/db/types.ts",
+      "type": "module",
+      "area": "data",
+      "label": "db/types.ts",
+      "file": "apps/mobile/src/db/types.ts",
+      "loc": 112,
+      "desc": "",
+      "deg": 5
+    },
+    {
+      "id": "mod:apps/mobile/src/detail.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "detail.tsx",
+      "file": "apps/mobile/src/detail.tsx",
+      "loc": 370,
+      "desc": "Shared building blocks for the game-detail screen (GamerHoard).",
+      "deg": 4
+    },
+    {
+      "id": "mod:apps/mobile/src/DragScrollView.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "DragScrollView.tsx",
+      "file": "apps/mobile/src/DragScrollView.tsx",
+      "loc": 28,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "mod:apps/mobile/src/export.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "export.ts",
+      "file": "apps/mobile/src/export.ts",
+      "loc": 30,
+      "desc": "",
+      "deg": 2
+    },
+    {
+      "id": "mod:apps/mobile/src/Fireworks.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "Fireworks.tsx",
+      "file": "apps/mobile/src/Fireworks.tsx",
+      "loc": 70,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "mod:apps/mobile/src/FriendsFeed.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "FriendsFeed.tsx",
+      "file": "apps/mobile/src/FriendsFeed.tsx",
+      "loc": 106,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "mod:apps/mobile/src/GameActionsModal.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "GameActionsModal.tsx",
+      "file": "apps/mobile/src/GameActionsModal.tsx",
+      "loc": 130,
+      "desc": "",
+      "deg": 5
+    },
+    {
+      "id": "mod:apps/mobile/src/genres.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "genres.ts",
+      "file": "apps/mobile/src/genres.ts",
+      "loc": 71,
+      "desc": "Library genre support: id<->name maps (localized) + lazy TMDB backfill of the `genres` column (comma-joined TMDB genre ids; '' = resolved but none/unknown).",
+      "deg": 6
+    },
+    {
+      "id": "mod:apps/mobile/src/i18n/en.ts",
+      "type": "module",
+      "area": "i18n",
+      "label": "i18n/en.ts",
+      "file": "apps/mobile/src/i18n/en.ts",
+      "loc": 742,
+      "desc": "English translations (default language).",
+      "deg": 2
+    },
+    {
+      "id": "mod:apps/mobile/src/i18n/es.ts",
+      "type": "module",
+      "area": "i18n",
+      "label": "i18n/es.ts",
+      "file": "apps/mobile/src/i18n/es.ts",
+      "loc": 743,
+      "desc": "Spanish translations. Typed as `Dict` (the shape of en.ts) so tsc flags any missing OR extra key versus English — this is our \"nothing left behind\" guard.",
+      "deg": 2
+    },
+    {
+      "id": "mod:apps/mobile/src/i18n/index.ts",
+      "type": "module",
+      "area": "i18n",
+      "label": "i18n/index.ts",
+      "file": "apps/mobile/src/i18n/index.ts",
+      "loc": 67,
+      "desc": "i18next setup for Watch Hoard.",
+      "deg": 10
+    },
+    {
+      "id": "mod:apps/mobile/src/img.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "img.ts",
+      "file": "apps/mobile/src/img.ts",
+      "loc": 11,
+      "desc": "Placeholder poster while the real TMDB artwork loads/backfills: a neutral dark tile with the title's initial.",
+      "deg": 11
+    },
+    {
+      "id": "mod:apps/mobile/src/import/csv.ts",
+      "type": "module",
+      "area": "import",
+      "label": "import/csv.ts",
+      "file": "apps/mobile/src/import/csv.ts",
+      "loc": 44,
+      "desc": "Small RFC4180-ish CSV parser (quotes only open at field start, like csv-parse's relax mode).",
+      "deg": 1
+    },
+    {
+      "id": "mod:apps/mobile/src/import/parse.ts",
+      "type": "module",
+      "area": "import",
+      "label": "import/parse.ts",
+      "file": "apps/mobile/src/import/parse.ts",
+      "loc": 167,
+      "desc": "In-app port of packages/importer/src/parse.ts — same logic, but reads the CSVs from an in-memory map (basename → text) extracted from the user's GDPR zip.",
+      "deg": 2
+    },
+    {
+      "id": "mod:apps/mobile/src/import/seed.ts",
+      "type": "module",
+      "area": "import",
+      "label": "import/seed.ts",
+      "file": "apps/mobile/src/import/seed.ts",
+      "loc": 122,
+      "desc": "In-app port of packages/importer/src/seed.ts + stats.ts — builds the Seed the data sources load, straight from the parsed export (no TMDB required; posters and genres are backfilled lazily by the a…",
+      "deg": 1
+    },
+    {
+      "id": "mod:apps/mobile/src/import/zip.ts",
+      "type": "module",
+      "area": "import",
+      "label": "import/zip.ts",
+      "file": "apps/mobile/src/import/zip.ts",
+      "loc": 64,
+      "desc": "Minimal ZIP reader for the TV Time GDPR export — zero dependencies.",
+      "deg": 0
+    },
+    {
+      "id": "mod:apps/mobile/src/lib/authStorage.ts",
+      "type": "module",
+      "area": "lib",
+      "label": "lib/authStorage.ts",
+      "file": "apps/mobile/src/lib/authStorage.ts",
+      "loc": 96,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "mod:apps/mobile/src/lib/backend.ts",
+      "type": "module",
+      "area": "lib",
+      "label": "lib/backend.ts",
+      "file": "apps/mobile/src/lib/backend.ts",
+      "loc": 10,
+      "desc": "Single source of truth for which DataSource + auth mode is active.",
+      "deg": 5
+    },
+    {
+      "id": "mod:apps/mobile/src/lib/supabase.ts",
+      "type": "module",
+      "area": "lib",
+      "label": "lib/supabase.ts",
+      "file": "apps/mobile/src/lib/supabase.ts",
+      "loc": 53,
+      "desc": "",
+      "deg": 9
+    },
+    {
+      "id": "mod:apps/mobile/src/ListPickerModal.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "ListPickerModal.tsx",
+      "file": "apps/mobile/src/ListPickerModal.tsx",
+      "loc": 129,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "mod:apps/mobile/src/moderation.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "moderation.ts",
+      "file": "apps/mobile/src/moderation.ts",
+      "loc": 135,
+      "desc": "Moderation & safety client (cloud only): user blocks, content reports, staff actions, account deletion.",
+      "deg": 10
+    },
+    {
+      "id": "mod:apps/mobile/src/NextGameModal.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "NextGameModal.tsx",
+      "file": "apps/mobile/src/NextGameModal.tsx",
+      "loc": 138,
+      "desc": "",
+      "deg": 5
+    },
+    {
+      "id": "mod:apps/mobile/src/NotificationBell.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "NotificationBell.tsx",
+      "file": "apps/mobile/src/NotificationBell.tsx",
+      "loc": 33,
+      "desc": "",
+      "deg": 6
+    },
+    {
+      "id": "mod:apps/mobile/src/notifications.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "notifications.ts",
+      "file": "apps/mobile/src/notifications.ts",
+      "loc": 89,
+      "desc": "In-app announcements shown under the bell icon.",
+      "deg": 3
+    },
+    {
+      "id": "mod:apps/mobile/src/posterSweep.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "posterSweep.ts",
+      "file": "apps/mobile/src/posterSweep.ts",
+      "loc": 77,
+      "desc": "One-shot bulk poster/genre resolver for freshly imported libraries.",
+      "deg": 2
+    },
+    {
+      "id": "mod:apps/mobile/src/pwa.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "pwa.ts",
+      "file": "apps/mobile/src/pwa.ts",
+      "loc": 42,
+      "desc": "PWA install support. The `beforeinstallprompt` event fires ONCE early in the page life (Chromium only), so this module is imported for its side effect from _layout and stashes the event for the Set…",
+      "deg": 2
+    },
+    {
+      "id": "mod:apps/mobile/src/ratings.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "ratings.ts",
+      "file": "apps/mobile/src/ratings.ts",
+      "loc": 45,
+      "desc": "External ratings, visible in the app (not just links).",
+      "deg": 0
+    },
+    {
+      "id": "mod:apps/mobile/src/rawg.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "rawg.ts",
+      "file": "apps/mobile/src/rawg.ts",
+      "loc": 454,
+      "desc": "GamerHoard game-metadata client — reads from the RAWG Video Games Database (https://rawg.io/apidocs).",
+      "deg": 4
+    },
+    {
+      "id": "mod:apps/mobile/src/ReportSheet.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "ReportSheet.tsx",
+      "file": "apps/mobile/src/ReportSheet.tsx",
+      "loc": 94,
+      "desc": "",
+      "deg": 4
+    },
+    {
+      "id": "mod:apps/mobile/src/ReviewsSection.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "ReviewsSection.tsx",
+      "file": "apps/mobile/src/ReviewsSection.tsx",
+      "loc": 191,
+      "desc": "",
+      "deg": 4
+    },
+    {
+      "id": "mod:apps/mobile/src/ShareButton.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "ShareButton.tsx",
+      "file": "apps/mobile/src/ShareButton.tsx",
+      "loc": 29,
+      "desc": "",
+      "deg": 4
+    },
+    {
+      "id": "mod:apps/mobile/src/Skeleton.tsx",
+      "type": "module",
+      "area": "ui",
+      "label": "Skeleton.tsx",
+      "file": "apps/mobile/src/Skeleton.tsx",
+      "loc": 51,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "mod:apps/mobile/src/social.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "social.ts",
+      "file": "apps/mobile/src/social.ts",
+      "loc": 247,
+      "desc": "",
+      "deg": 12
+    },
+    {
+      "id": "mod:apps/mobile/src/statsCard.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "statsCard.ts",
+      "file": "apps/mobile/src/statsCard.ts",
+      "loc": 136,
+      "desc": "Shareable stats card — renders a branded 1080x1350 PNG on an offscreen canvas (web only) and hands it to the Web Share API, falling back to a download.",
+      "deg": 1
+    },
+    {
+      "id": "mod:apps/mobile/src/steam.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "steam.ts",
+      "file": "apps/mobile/src/steam.ts",
+      "loc": 139,
+      "desc": "Steam import for GamerHoard.",
+      "deg": 6
+    },
+    {
+      "id": "mod:apps/mobile/src/supabase.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "supabase.ts",
+      "file": "apps/mobile/src/supabase.ts",
+      "loc": 7,
+      "desc": "",
+      "deg": 2
+    },
+    {
+      "id": "mod:apps/mobile/src/theme.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "theme.ts",
+      "file": "apps/mobile/src/theme.ts",
+      "loc": 25,
+      "desc": "GamerHoard design tokens — dark, cover-forward, cyan + violet accents (gaming vibe).",
+      "deg": 47
+    },
+    {
+      "id": "mod:apps/mobile/src/tmdb.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "tmdb.ts",
+      "file": "apps/mobile/src/tmdb.ts",
+      "loc": 5,
+      "desc": "Compatibility shim. GamerHoard reads game data from RAWG; the real implementation lives in ./rawg.ts. This file keeps the historical import path (`../src/tmdb`) working so screens that haven't been…",
+      "deg": 11
+    },
+    {
+      "id": "mod:apps/mobile/src/useData.ts",
+      "type": "module",
+      "area": "feature",
+      "label": "useData.ts",
+      "file": "apps/mobile/src/useData.ts",
+      "loc": 22,
+      "desc": "",
+      "deg": 11
+    },
+    {
+      "id": "mod:packages/core/src/index.ts",
+      "type": "module",
+      "area": "core",
+      "label": "index.ts",
+      "file": "packages/core/src/index.ts",
+      "loc": 13,
+      "desc": "Shared domain types + helpers used by the app, importer, and (future) API.",
+      "deg": 1
+    },
+    {
+      "id": "mod:packages/importer/src/db.ts",
+      "type": "module",
+      "area": "importer",
+      "label": "db.ts",
+      "file": "packages/importer/src/db.ts",
+      "loc": 27,
+      "desc": "Upsert resolved catalog + a user's tracking into Supabase (service-role).",
+      "deg": 1
+    },
+    {
+      "id": "mod:packages/importer/src/enrich.ts",
+      "type": "module",
+      "area": "importer",
+      "label": "enrich.ts",
+      "file": "packages/importer/src/enrich.ts",
+      "loc": 76,
+      "desc": "Enrich a seed with poster art.",
+      "deg": 2
+    },
+    {
+      "id": "mod:packages/importer/src/meta.ts",
+      "type": "module",
+      "area": "importer",
+      "label": "meta.ts",
+      "file": "packages/importer/src/meta.ts",
+      "loc": 45,
+      "desc": "Enrich shows with TMDB status + total episodes + genres + network (for categories & stats).",
+      "deg": 2
+    },
+    {
+      "id": "mod:packages/importer/src/parse.ts",
+      "type": "module",
+      "area": "importer",
+      "label": "parse.ts",
+      "file": "packages/importer/src/parse.ts",
+      "loc": 182,
+      "desc": "",
+      "deg": 2
+    },
+    {
+      "id": "mod:packages/importer/src/push.ts",
+      "type": "module",
+      "area": "importer",
+      "label": "push.ts",
+      "file": "packages/importer/src/push.ts",
+      "loc": 90,
+      "desc": "Push a local seed.json into the cloud app_* tables (0003) for one user.",
+      "deg": 2
+    },
+    {
+      "id": "mod:packages/importer/src/run.ts",
+      "type": "module",
+      "area": "importer",
+      "label": "run.ts",
+      "file": "packages/importer/src/run.ts",
+      "loc": 125,
+      "desc": "Watch Hoard importer CLI.",
+      "deg": 7
+    },
+    {
+      "id": "mod:packages/importer/src/seed.ts",
+      "type": "module",
+      "area": "importer",
+      "label": "seed.ts",
+      "file": "packages/importer/src/seed.ts",
+      "loc": 118,
+      "desc": "Build a compact, on-device seed from a TV Time export — no cloud, no TMDB required.",
+      "deg": 3
+    },
+    {
+      "id": "mod:packages/importer/src/stats.ts",
+      "type": "module",
+      "area": "importer",
+      "label": "stats.ts",
+      "file": "packages/importer/src/stats.ts",
+      "loc": 66,
+      "desc": "",
+      "deg": 3
+    },
+    {
+      "id": "mod:packages/importer/src/tmdb.ts",
+      "type": "module",
+      "area": "importer",
+      "label": "tmdb.ts",
+      "file": "packages/importer/src/tmdb.ts",
+      "loc": 52,
+      "desc": "Minimal TMDB client. Resolves TheTVDB ids and movie titles -> TMDB posters/metadata. Auth: TMDB v4 read token (TMDB_ACCESS_TOKEN) or v3 key (TMDB_API_KEY). Disk-cached.",
+      "deg": 4
+    },
+    {
+      "id": "mod:packages/importer/src/types.ts",
+      "type": "module",
+      "area": "importer",
+      "label": "types.ts",
+      "file": "packages/importer/src/types.ts",
+      "loc": 88,
+      "desc": "Normalized shapes the importer produces from a TV Time GDPR export.",
+      "deg": 3
+    },
+    {
+      "id": "pkg:core",
+      "type": "package",
+      "area": "core",
+      "label": "@watchhoard/core",
+      "file": "packages/core",
+      "deg": 0
+    },
+    {
+      "id": "pkg:importer",
+      "type": "package",
+      "area": "importer",
+      "label": "@watchhoard/importer",
+      "file": "packages/importer",
+      "deg": 0
+    },
+    {
+      "id": "fn:steam-auth",
+      "type": "function",
+      "area": "edge",
+      "label": "steam-auth",
+      "file": "supabase/functions/steam-auth/index.ts",
+      "loc": 177,
+      "desc": "GamerHoard — Steam import backend.",
+      "deg": 1
+    },
+    {
+      "id": "mig:0001_init.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0001_init.sql",
+      "file": "supabase/migrations/0001_init.sql",
+      "tables": [
+        "profiles",
+        "shows",
+        "seasons",
+        "episodes",
+        "movies",
+        "characters",
+        "follows",
+        "watches",
+        "watchlist",
+        "ratings",
+        "emotion_votes",
+        "character_votes",
+        "comments",
+        "comment_likes",
+        "comment_translations",
+        "lists",
+        "list_items",
+        "friendships",
+        "activities",
+        "badge_awards",
+        "notifications",
+        "where_to_watch_votes",
+        "profile_settings",
+        "import_jobs",
+        "id_map"
+      ],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "loc": 311,
+      "deg": 25
+    },
+    {
+      "id": "tbl:profiles",
+      "type": "table",
+      "area": "db",
+      "label": "profiles",
+      "deg": 1
+    },
+    {
+      "id": "tbl:shows",
+      "type": "table",
+      "area": "db",
+      "label": "shows",
+      "deg": 1
+    },
+    {
+      "id": "tbl:seasons",
+      "type": "table",
+      "area": "db",
+      "label": "seasons",
+      "deg": 1
+    },
+    {
+      "id": "tbl:episodes",
+      "type": "table",
+      "area": "db",
+      "label": "episodes",
+      "deg": 1
+    },
+    {
+      "id": "tbl:movies",
+      "type": "table",
+      "area": "db",
+      "label": "movies",
+      "deg": 1
+    },
+    {
+      "id": "tbl:characters",
+      "type": "table",
+      "area": "db",
+      "label": "characters",
+      "deg": 1
+    },
+    {
+      "id": "tbl:follows",
+      "type": "table",
+      "area": "db",
+      "label": "follows",
+      "deg": 1
+    },
+    {
+      "id": "tbl:watches",
+      "type": "table",
+      "area": "db",
+      "label": "watches",
+      "deg": 1
+    },
+    {
+      "id": "tbl:watchlist",
+      "type": "table",
+      "area": "db",
+      "label": "watchlist",
+      "deg": 1
+    },
+    {
+      "id": "tbl:ratings",
+      "type": "table",
+      "area": "db",
+      "label": "ratings",
+      "deg": 1
+    },
+    {
+      "id": "tbl:emotion_votes",
+      "type": "table",
+      "area": "db",
+      "label": "emotion_votes",
+      "deg": 1
+    },
+    {
+      "id": "tbl:character_votes",
+      "type": "table",
+      "area": "db",
+      "label": "character_votes",
+      "deg": 1
+    },
+    {
+      "id": "tbl:comments",
+      "type": "table",
+      "area": "db",
+      "label": "comments",
+      "deg": 1
+    },
+    {
+      "id": "tbl:comment_likes",
+      "type": "table",
+      "area": "db",
+      "label": "comment_likes",
+      "deg": 1
+    },
+    {
+      "id": "tbl:comment_translations",
+      "type": "table",
+      "area": "db",
+      "label": "comment_translations",
+      "deg": 1
+    },
+    {
+      "id": "tbl:lists",
+      "type": "table",
+      "area": "db",
+      "label": "lists",
+      "deg": 1
+    },
+    {
+      "id": "tbl:list_items",
+      "type": "table",
+      "area": "db",
+      "label": "list_items",
+      "deg": 1
+    },
+    {
+      "id": "tbl:friendships",
+      "type": "table",
+      "area": "db",
+      "label": "friendships",
+      "deg": 1
+    },
+    {
+      "id": "tbl:activities",
+      "type": "table",
+      "area": "db",
+      "label": "activities",
+      "deg": 1
+    },
+    {
+      "id": "tbl:badge_awards",
+      "type": "table",
+      "area": "db",
+      "label": "badge_awards",
+      "deg": 1
+    },
+    {
+      "id": "tbl:notifications",
+      "type": "table",
+      "area": "db",
+      "label": "notifications",
+      "deg": 1
+    },
+    {
+      "id": "tbl:where_to_watch_votes",
+      "type": "table",
+      "area": "db",
+      "label": "where_to_watch_votes",
+      "deg": 1
+    },
+    {
+      "id": "tbl:profile_settings",
+      "type": "table",
+      "area": "db",
+      "label": "profile_settings",
+      "deg": 1
+    },
+    {
+      "id": "tbl:import_jobs",
+      "type": "table",
+      "area": "db",
+      "label": "import_jobs",
+      "deg": 1
+    },
+    {
+      "id": "tbl:id_map",
+      "type": "table",
+      "area": "db",
+      "label": "id_map",
+      "deg": 1
+    },
+    {
+      "id": "mig:0002_rls.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0002_rls.sql",
+      "file": "supabase/migrations/0002_rls.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 15,
+      "triggers": [],
+      "loc": 64,
+      "deg": 0
+    },
+    {
+      "id": "mig:0003_app_user_data.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0003_app_user_data.sql",
+      "file": "supabase/migrations/0003_app_user_data.sql",
+      "tables": [
+        "app_profile",
+        "app_shows",
+        "app_ep_state",
+        "app_movies",
+        "app_reviews",
+        "app_badges",
+        "app_lists",
+        "app_recent"
+      ],
+      "funcs": [],
+      "policies": 1,
+      "triggers": [],
+      "loc": 138,
+      "deg": 8
+    },
+    {
+      "id": "tbl:app_profile",
+      "type": "table",
+      "area": "db",
+      "label": "app_profile",
+      "deg": 1
+    },
+    {
+      "id": "tbl:app_shows",
+      "type": "table",
+      "area": "db",
+      "label": "app_shows",
+      "deg": 1
+    },
+    {
+      "id": "tbl:app_ep_state",
+      "type": "table",
+      "area": "db",
+      "label": "app_ep_state",
+      "deg": 1
+    },
+    {
+      "id": "tbl:app_movies",
+      "type": "table",
+      "area": "db",
+      "label": "app_movies",
+      "deg": 1
+    },
+    {
+      "id": "tbl:app_reviews",
+      "type": "table",
+      "area": "db",
+      "label": "app_reviews",
+      "deg": 1
+    },
+    {
+      "id": "tbl:app_badges",
+      "type": "table",
+      "area": "db",
+      "label": "app_badges",
+      "deg": 1
+    },
+    {
+      "id": "tbl:app_lists",
+      "type": "table",
+      "area": "db",
+      "label": "app_lists",
+      "deg": 1
+    },
+    {
+      "id": "tbl:app_recent",
+      "type": "table",
+      "area": "db",
+      "label": "app_recent",
+      "deg": 1
+    },
+    {
+      "id": "mig:0004_accounts.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0004_accounts.sql",
+      "file": "supabase/migrations/0004_accounts.sql",
+      "tables": [],
+      "funcs": [
+        "is_handle_available",
+        "handle_new_user"
+      ],
+      "policies": 0,
+      "triggers": [
+        "on_auth_user_created"
+      ],
+      "loc": 56,
+      "deg": 0
+    },
+    {
+      "id": "mig:0005_social_graph_and_reviews.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0005_social_graph_and_reviews.sql",
+      "file": "supabase/migrations/0005_social_graph_and_reviews.sql",
+      "tables": [
+        "user_follows",
+        "content_reviews",
+        "review_likes"
+      ],
+      "funcs": [
+        "follow_user",
+        "unfollow_user",
+        "respond_follow_request",
+        "follow_counts",
+        "bump_review_like"
+      ],
+      "policies": 7,
+      "triggers": [
+        "review_like_count"
+      ],
+      "loc": 145,
+      "deg": 3
+    },
+    {
+      "id": "tbl:user_follows",
+      "type": "table",
+      "area": "db",
+      "label": "user_follows",
+      "deg": 1
+    },
+    {
+      "id": "tbl:content_reviews",
+      "type": "table",
+      "area": "db",
+      "label": "content_reviews",
+      "deg": 1
+    },
+    {
+      "id": "tbl:review_likes",
+      "type": "table",
+      "area": "db",
+      "label": "review_likes",
+      "deg": 1
+    },
+    {
+      "id": "mig:0006_favorites_and_list_items.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0006_favorites_and_list_items.sql",
+      "file": "supabase/migrations/0006_favorites_and_list_items.sql",
+      "tables": [
+        "app_list_items"
+      ],
+      "funcs": [],
+      "policies": 1,
+      "triggers": [],
+      "loc": 23,
+      "deg": 1
+    },
+    {
+      "id": "tbl:app_list_items",
+      "type": "table",
+      "area": "db",
+      "label": "app_list_items",
+      "deg": 1
+    },
+    {
+      "id": "mig:0007_phase4_social_plus.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0007_phase4_social_plus.sql",
+      "file": "supabase/migrations/0007_phase4_social_plus.sql",
+      "tables": [
+        "activity_events"
+      ],
+      "funcs": [],
+      "policies": 7,
+      "triggers": [],
+      "loc": 63,
+      "deg": 1
+    },
+    {
+      "id": "tbl:activity_events",
+      "type": "table",
+      "area": "db",
+      "label": "activity_events",
+      "deg": 1
+    },
+    {
+      "id": "mig:0008_movie_rewatch.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0008_movie_rewatch.sql",
+      "file": "supabase/migrations/0008_movie_rewatch.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "loc": 3,
+      "deg": 0
+    },
+    {
+      "id": "mig:0009_recent_entity_and_movie_tmdb.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0009_recent_entity_and_movie_tmdb.sql",
+      "file": "supabase/migrations/0009_recent_entity_and_movie_tmdb.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "loc": 6,
+      "deg": 0
+    },
+    {
+      "id": "mig:0010_episode_rewatch.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0010_episode_rewatch.sql",
+      "file": "supabase/migrations/0010_episode_rewatch.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "loc": 5,
+      "deg": 0
+    },
+    {
+      "id": "mig:0011_announcements.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0011_announcements.sql",
+      "file": "supabase/migrations/0011_announcements.sql",
+      "tables": [
+        "announcements"
+      ],
+      "funcs": [],
+      "policies": 1,
+      "triggers": [],
+      "loc": 34,
+      "deg": 1
+    },
+    {
+      "id": "tbl:announcements",
+      "type": "table",
+      "area": "db",
+      "label": "announcements",
+      "deg": 1
+    },
+    {
+      "id": "mig:0012_moderation.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0012_moderation.sql",
+      "file": "supabase/migrations/0012_moderation.sql",
+      "tables": [
+        "user_blocks",
+        "reports"
+      ],
+      "funcs": [
+        "is_staff",
+        "is_banned",
+        "blocked_between",
+        "block_user",
+        "unblock_user",
+        "follow_user",
+        "submit_report",
+        "mod_resolve_report",
+        "mod_set_ban",
+        "admin_set_role",
+        "delete_account"
+      ],
+      "policies": 7,
+      "triggers": [],
+      "loc": 259,
+      "deg": 2
+    },
+    {
+      "id": "tbl:user_blocks",
+      "type": "table",
+      "area": "db",
+      "label": "user_blocks",
+      "deg": 1
+    },
+    {
+      "id": "tbl:reports",
+      "type": "table",
+      "area": "db",
+      "label": "reports",
+      "deg": 1
+    },
+    {
+      "id": "mig:0013_gamerhoard_game_fields.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0013_gamerhoard_game_fields.sql",
+      "file": "supabase/migrations/0013_gamerhoard_game_fields.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "loc": 10,
+      "deg": 0
+    },
+    {
+      "id": "mig:0014_gamerhoard_rating_notes.sql",
+      "type": "migration",
+      "area": "db",
+      "label": "0014_gamerhoard_rating_notes.sql",
+      "file": "supabase/migrations/0014_gamerhoard_rating_notes.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "loc": 5,
+      "deg": 0
+    }
+  ],
+  "edges": [
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:profiles",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:shows",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:seasons",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:episodes",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:movies",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:characters",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:follows",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:watches",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:watchlist",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:ratings",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:emotion_votes",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:character_votes",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:comments",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:comment_likes",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:comment_translations",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:lists",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:list_items",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:friendships",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:activities",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:badge_awards",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:notifications",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:where_to_watch_votes",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:profile_settings",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:import_jobs",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0001_init.sql",
+      "to": "tbl:id_map",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0003_app_user_data.sql",
+      "to": "tbl:app_profile",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0003_app_user_data.sql",
+      "to": "tbl:app_shows",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0003_app_user_data.sql",
+      "to": "tbl:app_ep_state",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0003_app_user_data.sql",
+      "to": "tbl:app_movies",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0003_app_user_data.sql",
+      "to": "tbl:app_reviews",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0003_app_user_data.sql",
+      "to": "tbl:app_badges",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0003_app_user_data.sql",
+      "to": "tbl:app_lists",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0003_app_user_data.sql",
+      "to": "tbl:app_recent",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0005_social_graph_and_reviews.sql",
+      "to": "tbl:user_follows",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0005_social_graph_and_reviews.sql",
+      "to": "tbl:content_reviews",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0005_social_graph_and_reviews.sql",
+      "to": "tbl:review_likes",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0006_favorites_and_list_items.sql",
+      "to": "tbl:app_list_items",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0007_phase4_social_plus.sql",
+      "to": "tbl:activity_events",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0011_announcements.sql",
+      "to": "tbl:announcements",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0012_moderation.sql",
+      "to": "tbl:user_blocks",
+      "type": "defines"
+    },
+    {
+      "from": "mig:0012_moderation.sql",
+      "to": "tbl:reports",
+      "type": "defines"
+    },
+    {
+      "from": "route:(tabs)/explore.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/explore.tsx",
+      "to": "mod:apps/mobile/src/NotificationBell.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/explore.tsx",
+      "to": "mod:apps/mobile/src/DragScrollView.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/explore.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/explore.tsx",
+      "to": "mod:apps/mobile/src/lib/backend.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/explore.tsx",
+      "to": "mod:apps/mobile/src/social.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/explore.tsx",
+      "to": "mod:apps/mobile/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/explore.tsx",
+      "to": "mod:apps/mobile/src/FriendsFeed.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/explore.tsx",
+      "to": "mod:apps/mobile/src/Skeleton.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/index.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/index.tsx",
+      "to": "mod:apps/mobile/src/NotificationBell.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/index.tsx",
+      "to": "mod:apps/mobile/src/DragScrollView.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/index.tsx",
+      "to": "mod:apps/mobile/src/useData.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/index.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/index.tsx",
+      "to": "mod:apps/mobile/src/img.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/index.tsx",
+      "to": "mod:apps/mobile/src/categories.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/index.tsx",
+      "to": "mod:apps/mobile/src/genres.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/index.tsx",
+      "to": "mod:apps/mobile/src/GameActionsModal.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/index.tsx",
+      "to": "mod:apps/mobile/src/NextGameModal.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/index.tsx",
+      "to": "mod:apps/mobile/src/Skeleton.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/movies.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/movies.tsx",
+      "to": "mod:apps/mobile/src/NotificationBell.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/movies.tsx",
+      "to": "mod:apps/mobile/src/useData.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/movies.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/movies.tsx",
+      "to": "mod:apps/mobile/src/img.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/movies.tsx",
+      "to": "mod:apps/mobile/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/movies.tsx",
+      "to": "mod:apps/mobile/src/genres.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/movies.tsx",
+      "to": "mod:apps/mobile/src/dates.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/profile.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/profile.tsx",
+      "to": "mod:apps/mobile/src/NotificationBell.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/profile.tsx",
+      "to": "mod:apps/mobile/src/components.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/profile.tsx",
+      "to": "mod:apps/mobile/src/DragScrollView.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/profile.tsx",
+      "to": "mod:apps/mobile/src/useData.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/profile.tsx",
+      "to": "mod:apps/mobile/src/img.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/profile.tsx",
+      "to": "mod:apps/mobile/src/lib/backend.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/profile.tsx",
+      "to": "mod:apps/mobile/src/auth/session.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/profile.tsx",
+      "to": "mod:apps/mobile/src/social.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/profile.tsx",
+      "to": "mod:apps/mobile/src/categories.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/profile.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:(tabs)/_layout.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:+not-found.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:account.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:account.tsx",
+      "to": "mod:apps/mobile/src/auth/session.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:account.tsx",
+      "to": "mod:apps/mobile/src/lib/supabase.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:account.tsx",
+      "to": "mod:apps/mobile/src/moderation.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:account.tsx",
+      "to": "mod:apps/mobile/src/useData.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:account.tsx",
+      "to": "mod:apps/mobile/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:badges.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:badges.tsx",
+      "to": "mod:apps/mobile/src/useData.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:badges.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:blocked.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:blocked.tsx",
+      "to": "mod:apps/mobile/src/moderation.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:blocked.tsx",
+      "to": "mod:apps/mobile/src/social.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:calendar.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:calendar.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:calendar.tsx",
+      "to": "mod:apps/mobile/src/img.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:calendar.tsx",
+      "to": "mod:apps/mobile/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:calendar.tsx",
+      "to": "mod:apps/mobile/src/dates.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:company/[id].tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:company/[id].tsx",
+      "to": "mod:apps/mobile/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:company/[id].tsx",
+      "to": "mod:apps/mobile/src/detail.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:donate.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:episode/[key].tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:follows.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:follows.tsx",
+      "to": "mod:apps/mobile/src/social.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:guidelines.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:history.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:history.tsx",
+      "to": "mod:apps/mobile/src/useData.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:history.tsx",
+      "to": "mod:apps/mobile/src/img.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:history.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:history.tsx",
+      "to": "mod:apps/mobile/src/dates.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:import.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:import.tsx",
+      "to": "mod:apps/mobile/src/steam.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:import.tsx",
+      "to": "api:steam",
+      "type": "uses-api"
+    },
+    {
+      "from": "route:language.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:language.tsx",
+      "to": "mod:apps/mobile/src/i18n/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:list/[id].tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:list/[id].tsx",
+      "to": "mod:apps/mobile/src/useData.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:list/[id].tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:list/[id].tsx",
+      "to": "mod:apps/mobile/src/img.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:moderation.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:moderation.tsx",
+      "to": "mod:apps/mobile/src/auth/session.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:moderation.tsx",
+      "to": "mod:apps/mobile/src/moderation.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:movie/[id].tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:notifications.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:notifications.tsx",
+      "to": "mod:apps/mobile/src/notifications.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:notifications.tsx",
+      "to": "mod:apps/mobile/src/dates.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:person/[id].tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:person/[id].tsx",
+      "to": "mod:apps/mobile/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:person/[id].tsx",
+      "to": "mod:apps/mobile/src/ShareButton.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:requests.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:requests.tsx",
+      "to": "mod:apps/mobile/src/social.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:reset-password.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:reset-password.tsx",
+      "to": "mod:apps/mobile/src/lib/supabase.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:settings.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:settings.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:settings.tsx",
+      "to": "mod:apps/mobile/src/export.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:settings.tsx",
+      "to": "mod:apps/mobile/src/lib/backend.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:settings.tsx",
+      "to": "mod:apps/mobile/src/auth/session.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:settings.tsx",
+      "to": "mod:apps/mobile/src/i18n/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:settings.tsx",
+      "to": "mod:apps/mobile/src/pwa.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:settings.tsx",
+      "to": "mod:apps/mobile/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/i18n/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/useData.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/img.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/rawg.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/steam.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/detail.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/ListPickerModal.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/ShareButton.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/Fireworks.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:show/[id].tsx",
+      "to": "mod:apps/mobile/src/categories.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:stats.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:stats.tsx",
+      "to": "mod:apps/mobile/src/useData.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:stats.tsx",
+      "to": "mod:apps/mobile/src/img.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:stats.tsx",
+      "to": "mod:apps/mobile/src/genres.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:stats.tsx",
+      "to": "mod:apps/mobile/src/categories.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:tvtime-comments.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:tvtime-comments.tsx",
+      "to": "mod:apps/mobile/src/useData.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:tvtime-comments.tsx",
+      "to": "mod:apps/mobile/src/img.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:tvtime-comments.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:u/[handle].tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:u/[handle].tsx",
+      "to": "mod:apps/mobile/src/social.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:u/[handle].tsx",
+      "to": "mod:apps/mobile/src/auth/session.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:u/[handle].tsx",
+      "to": "mod:apps/mobile/src/ShareButton.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:u/[handle].tsx",
+      "to": "mod:apps/mobile/src/moderation.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:u/[handle].tsx",
+      "to": "mod:apps/mobile/src/ReportSheet.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:_layout.tsx",
+      "to": "mod:apps/mobile/src/pwa.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:_layout.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:_layout.tsx",
+      "to": "mod:apps/mobile/src/auth/session.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:_layout.tsx",
+      "to": "mod:apps/mobile/src/auth/AuthFlow.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:_layout.tsx",
+      "to": "mod:apps/mobile/src/auth/Suspended.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "route:_layout.tsx",
+      "to": "mod:apps/mobile/src/moderation.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:_layout.tsx",
+      "to": "mod:apps/mobile/src/i18n/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "route:_layout.tsx",
+      "to": "mod:apps/mobile/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/AuthFlow.tsx",
+      "to": "mod:apps/mobile/src/auth/Landing.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/AuthFlow.tsx",
+      "to": "mod:apps/mobile/src/auth/AuthScreen.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/AuthScreen.tsx",
+      "to": "mod:apps/mobile/src/lib/supabase.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/AuthScreen.tsx",
+      "to": "mod:apps/mobile/src/lib/authStorage.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/AuthScreen.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/Landing.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/session.tsx",
+      "to": "mod:apps/mobile/src/lib/supabase.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/session.tsx",
+      "to": "mod:apps/mobile/src/lib/authStorage.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/session.tsx",
+      "to": "mod:apps/mobile/src/i18n/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/session.tsx",
+      "to": "api:supabase",
+      "type": "uses-api"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/Suspended.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/Suspended.tsx",
+      "to": "mod:apps/mobile/src/auth/session.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/auth/Suspended.tsx",
+      "to": "mod:apps/mobile/src/moderation.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/categories.ts",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/components.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/index.ts",
+      "to": "mod:apps/mobile/src/lib/backend.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/index.ts",
+      "to": "mod:apps/mobile/src/db/types.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/index.ts",
+      "to": "mod:apps/mobile/src/db/local.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/index.ts",
+      "to": "mod:apps/mobile/src/db/supabase.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/index.web.ts",
+      "to": "mod:apps/mobile/src/lib/backend.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/index.web.ts",
+      "to": "mod:apps/mobile/src/db/types.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/index.web.ts",
+      "to": "mod:apps/mobile/src/db/memory.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/index.web.ts",
+      "to": "mod:apps/mobile/src/db/supabase.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/local.ts",
+      "to": "mod:apps/mobile/src/db/schema.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/local.ts",
+      "to": "mod:apps/mobile/src/db/types.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/local.ts",
+      "to": "mod:apps/mobile/src/dates.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/memory.ts",
+      "to": "mod:apps/mobile/src/db/types.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/memory.ts",
+      "to": "mod:apps/mobile/src/dates.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/supabase.ts",
+      "to": "mod:apps/mobile/src/lib/supabase.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/supabase.ts",
+      "to": "mod:apps/mobile/src/i18n/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/supabase.ts",
+      "to": "mod:apps/mobile/src/dates.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/db/supabase.ts",
+      "to": "mod:apps/mobile/src/db/types.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/detail.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/detail.tsx",
+      "to": "mod:apps/mobile/src/rawg.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/export.ts",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/Fireworks.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/Fireworks.tsx",
+      "to": "mod:apps/mobile/src/i18n/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/FriendsFeed.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/FriendsFeed.tsx",
+      "to": "mod:apps/mobile/src/social.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/GameActionsModal.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/GameActionsModal.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/GameActionsModal.tsx",
+      "to": "mod:apps/mobile/src/img.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/GameActionsModal.tsx",
+      "to": "mod:apps/mobile/src/categories.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/genres.ts",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/genres.ts",
+      "to": "mod:apps/mobile/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/i18n/es.ts",
+      "to": "mod:apps/mobile/src/i18n/en.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/i18n/index.ts",
+      "to": "mod:apps/mobile/src/i18n/en.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/i18n/index.ts",
+      "to": "mod:apps/mobile/src/i18n/es.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/import/parse.ts",
+      "to": "mod:apps/mobile/src/import/csv.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/import/seed.ts",
+      "to": "mod:apps/mobile/src/import/parse.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/lib/supabase.ts",
+      "to": "mod:apps/mobile/src/lib/authStorage.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/lib/supabase.ts",
+      "to": "api:supabase",
+      "type": "uses-api"
+    },
+    {
+      "from": "mod:apps/mobile/src/ListPickerModal.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/ListPickerModal.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/moderation.ts",
+      "to": "mod:apps/mobile/src/lib/supabase.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/moderation.ts",
+      "to": "mod:apps/mobile/src/social.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/NextGameModal.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/NextGameModal.tsx",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/NextGameModal.tsx",
+      "to": "mod:apps/mobile/src/img.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/NextGameModal.tsx",
+      "to": "mod:apps/mobile/src/genres.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/NotificationBell.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/NotificationBell.tsx",
+      "to": "mod:apps/mobile/src/notifications.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/notifications.ts",
+      "to": "mod:apps/mobile/src/supabase.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/posterSweep.ts",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/posterSweep.ts",
+      "to": "mod:apps/mobile/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/rawg.ts",
+      "to": "api:rawg",
+      "type": "uses-api"
+    },
+    {
+      "from": "mod:apps/mobile/src/ReportSheet.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/ReportSheet.tsx",
+      "to": "mod:apps/mobile/src/moderation.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/ReviewsSection.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/ReviewsSection.tsx",
+      "to": "mod:apps/mobile/src/auth/session.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/ReviewsSection.tsx",
+      "to": "mod:apps/mobile/src/social.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/ReviewsSection.tsx",
+      "to": "mod:apps/mobile/src/ReportSheet.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/ShareButton.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/Skeleton.tsx",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/social.ts",
+      "to": "mod:apps/mobile/src/lib/supabase.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/social.ts",
+      "to": "mod:apps/mobile/src/i18n/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/social.ts",
+      "to": "mod:apps/mobile/src/moderation.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/statsCard.ts",
+      "to": "mod:apps/mobile/src/theme.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/steam.ts",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/steam.ts",
+      "to": "api:steam",
+      "type": "uses-api"
+    },
+    {
+      "from": "mod:apps/mobile/src/steam.ts",
+      "to": "api:supabase",
+      "type": "uses-api"
+    },
+    {
+      "from": "mod:apps/mobile/src/steam.ts",
+      "to": "fn:steam-auth",
+      "type": "calls"
+    },
+    {
+      "from": "mod:apps/mobile/src/supabase.ts",
+      "to": "api:supabase",
+      "type": "uses-api"
+    },
+    {
+      "from": "mod:apps/mobile/src/tmdb.ts",
+      "to": "mod:apps/mobile/src/rawg.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:apps/mobile/src/useData.ts",
+      "to": "mod:apps/mobile/src/db/index.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/core/src/index.ts",
+      "to": "api:tmdb",
+      "type": "uses-api"
+    },
+    {
+      "from": "mod:packages/importer/src/db.ts",
+      "to": "api:supabase",
+      "type": "uses-api"
+    },
+    {
+      "from": "mod:packages/importer/src/enrich.ts",
+      "to": "mod:packages/importer/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/meta.ts",
+      "to": "mod:packages/importer/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/parse.ts",
+      "to": "mod:packages/importer/src/types.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/push.ts",
+      "to": "api:supabase",
+      "type": "uses-api"
+    },
+    {
+      "from": "mod:packages/importer/src/run.ts",
+      "to": "mod:packages/importer/src/parse.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/run.ts",
+      "to": "mod:packages/importer/src/stats.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/run.ts",
+      "to": "mod:packages/importer/src/seed.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/run.ts",
+      "to": "mod:packages/importer/src/tmdb.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/run.ts",
+      "to": "mod:packages/importer/src/enrich.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/run.ts",
+      "to": "mod:packages/importer/src/meta.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/run.ts",
+      "to": "mod:packages/importer/src/push.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/seed.ts",
+      "to": "mod:packages/importer/src/types.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/seed.ts",
+      "to": "mod:packages/importer/src/stats.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/stats.ts",
+      "to": "mod:packages/importer/src/types.ts",
+      "type": "imports"
+    },
+    {
+      "from": "mod:packages/importer/src/tmdb.ts",
+      "to": "api:tmdb",
+      "type": "uses-api"
+    }
+  ],
+  "dataSource": {
+    "methods": [
+      {
+        "name": "ready",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "clearData",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "reimport",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "importData",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getProfile",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getContinueWatching",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getShows",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getMovies",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getUpcomingMovies",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getMovieByUuid",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getReviews",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getBadges",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getShowById",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getFavorites",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getFavoriteMovies",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getRecent",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getLists",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getListById",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getListItems",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "createList",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "renameList",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "deleteList",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "addToList",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "removeFromList",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "logRecent",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setShowState",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "rewatchMovie",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "rewatchEpisode",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getEpisodeRewatches",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setShowMeta",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setShowFavorite",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setMovieFavorite",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "markWatched",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setProgress",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getWatchedEpisodes",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "seedEpState",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setEpisodeWatched",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "addShow",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setShowNextAir",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "addMovie",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setMovieWatched",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setMovieReleaseDate",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "getUncheckedPendientes",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "markMovieChecked",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setMoviePoster",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setMovieTmdbId",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setShowPoster",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setShowGenres",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setOwnedPlatforms",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setPlatforms",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "addSteamGame",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setShowRating",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setShowNotes",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "setMovieGenres",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "isShowInLibrary",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "isMovieInLibrary",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "removeShow",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      },
+      {
+        "name": "removeMovie",
+        "cov": {
+          "local": true,
+          "memory": true,
+          "supabase": true
+        }
+      }
+    ],
+    "impls": [
+      {
+        "key": "local",
+        "file": "apps/mobile/src/db/local.ts",
+        "label": "LocalSource (SQLite / native)"
+      },
+      {
+        "key": "memory",
+        "file": "apps/mobile/src/db/memory.ts",
+        "label": "MemorySource (web)"
+      },
+      {
+        "key": "supabase",
+        "file": "apps/mobile/src/db/supabase.ts",
+        "label": "SupabaseSource (cloud)"
+      }
+    ],
+    "types": [
+      "Profile",
+      "ShowRow",
+      "RecentRow",
+      "MovieRow",
+      "ReviewRow",
+      "BadgeRow",
+      "ListRow",
+      "ListItemRow",
+      "AddShow",
+      "AddMovie",
+      "SteamGame"
+    ]
+  },
+  "migrations": [
+    {
+      "file": "0001_init.sql",
+      "tables": [
+        "profiles",
+        "shows",
+        "seasons",
+        "episodes",
+        "movies",
+        "characters",
+        "follows",
+        "watches",
+        "watchlist",
+        "ratings",
+        "emotion_votes",
+        "character_votes",
+        "comments",
+        "comment_likes",
+        "comment_translations",
+        "lists",
+        "list_items",
+        "friendships",
+        "activities",
+        "badge_awards",
+        "notifications",
+        "where_to_watch_votes",
+        "profile_settings",
+        "import_jobs",
+        "id_map"
+      ],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "alters": []
+    },
+    {
+      "file": "0002_rls.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 15,
+      "triggers": [],
+      "alters": [
+        "profiles",
+        "shows",
+        "seasons",
+        "episodes",
+        "movies",
+        "characters",
+        "comments",
+        "list_items"
+      ]
+    },
+    {
+      "file": "0003_app_user_data.sql",
+      "tables": [
+        "app_profile",
+        "app_shows",
+        "app_ep_state",
+        "app_movies",
+        "app_reviews",
+        "app_badges",
+        "app_lists",
+        "app_recent"
+      ],
+      "funcs": [],
+      "policies": 1,
+      "triggers": [],
+      "alters": []
+    },
+    {
+      "file": "0004_accounts.sql",
+      "tables": [],
+      "funcs": [
+        "is_handle_available",
+        "handle_new_user"
+      ],
+      "policies": 0,
+      "triggers": [
+        "on_auth_user_created"
+      ],
+      "alters": []
+    },
+    {
+      "file": "0005_social_graph_and_reviews.sql",
+      "tables": [
+        "user_follows",
+        "content_reviews",
+        "review_likes"
+      ],
+      "funcs": [
+        "follow_user",
+        "unfollow_user",
+        "respond_follow_request",
+        "follow_counts",
+        "bump_review_like"
+      ],
+      "policies": 7,
+      "triggers": [
+        "review_like_count"
+      ],
+      "alters": [
+        "user_follows",
+        "content_reviews",
+        "review_likes"
+      ]
+    },
+    {
+      "file": "0006_favorites_and_list_items.sql",
+      "tables": [
+        "app_list_items"
+      ],
+      "funcs": [],
+      "policies": 1,
+      "triggers": [],
+      "alters": [
+        "app_movies",
+        "app_list_items"
+      ]
+    },
+    {
+      "file": "0007_phase4_social_plus.sql",
+      "tables": [
+        "activity_events"
+      ],
+      "funcs": [],
+      "policies": 7,
+      "triggers": [],
+      "alters": [
+        "content_reviews",
+        "activity_events",
+        "app_shows",
+        "app_movies"
+      ]
+    },
+    {
+      "file": "0008_movie_rewatch.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "alters": [
+        "app_movies"
+      ]
+    },
+    {
+      "file": "0009_recent_entity_and_movie_tmdb.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "alters": [
+        "app_recent",
+        "app_movies"
+      ]
+    },
+    {
+      "file": "0010_episode_rewatch.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "alters": [
+        "app_ep_state"
+      ]
+    },
+    {
+      "file": "0011_announcements.sql",
+      "tables": [
+        "announcements"
+      ],
+      "funcs": [],
+      "policies": 1,
+      "triggers": [],
+      "alters": [
+        "announcements"
+      ]
+    },
+    {
+      "file": "0012_moderation.sql",
+      "tables": [
+        "user_blocks",
+        "reports"
+      ],
+      "funcs": [
+        "is_staff",
+        "is_banned",
+        "blocked_between",
+        "block_user",
+        "unblock_user",
+        "follow_user",
+        "submit_report",
+        "mod_resolve_report",
+        "mod_set_ban",
+        "admin_set_role",
+        "delete_account"
+      ],
+      "policies": 7,
+      "triggers": [],
+      "alters": [
+        "profiles",
+        "user_blocks",
+        "reports"
+      ]
+    },
+    {
+      "file": "0013_gamerhoard_game_fields.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "alters": [
+        "app_shows"
+      ]
+    },
+    {
+      "file": "0014_gamerhoard_rating_notes.sql",
+      "tables": [],
+      "funcs": [],
+      "policies": 0,
+      "triggers": [],
+      "alters": [
+        "app_shows"
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "id": "pkg:root",
+      "name": "watchhoard",
+      "version": "0.1.0",
+      "scripts": [
+        "mobile",
+        "web",
+        "seed",
+        "import:validate",
+        "import:run",
+        "enrich"
+      ],
+      "deps": [],
+      "dir": ".",
+      "description": "Open-source, self-hostable successor to TV Time. Import your data and keep going."
+    },
+    {
+      "id": "pkg:mobile",
+      "name": "@gamerhoard/mobile",
+      "version": "0.1.0",
+      "scripts": [
+        "start",
+        "web",
+        "android",
+        "ios",
+        "typecheck",
+        "postinstall"
+      ],
+      "deps": [
+        "@expo/metro-runtime",
+        "@expo/vector-icons",
+        "@react-native-async-storage/async-storage",
+        "@shopify/flash-list",
+        "@supabase/supabase-js",
+        "@tanstack/react-query",
+        "expo",
+        "expo-constants",
+        "expo-font",
+        "expo-image",
+        "expo-linking",
+        "expo-router",
+        "expo-splash-screen",
+        "expo-sqlite",
+        "expo-status-bar",
+        "expo-web-browser",
+        "i18next",
+        "intl-pluralrules",
+        "react",
+        "react-dom",
+        "react-i18next",
+        "react-native",
+        "react-native-gesture-handler",
+        "react-native-reanimated",
+        "react-native-safe-area-context",
+        "react-native-screens",
+        "react-native-web",
+        "react-native-worklets"
+      ],
+      "dir": "apps/mobile",
+      "description": ""
+    },
+    {
+      "id": "pkg:core",
+      "name": "@watchhoard/core",
+      "version": "0.1.0",
+      "scripts": [],
+      "deps": [
+        "@supabase/supabase-js"
+      ],
+      "dir": "packages/core",
+      "description": ""
+    },
+    {
+      "id": "pkg:importer",
+      "name": "@watchhoard/importer",
+      "version": "0.1.0",
+      "scripts": [
+        "validate",
+        "import",
+        "seed",
+        "favorites",
+        "enrich",
+        "push"
+      ],
+      "deps": [
+        "csv-parse",
+        "@supabase/supabase-js"
+      ],
+      "dir": "packages/importer",
+      "description": "Import a TV Time GDPR export into Watch Hoard (parse → resolve TVDB/IMDb→TMDB → upsert)."
+    }
+  ],
+  "functions": [
+    {
+      "name": "steam-auth",
+      "loc": 177,
+      "desc": "GamerHoard — Steam import backend."
+    }
+  ],
+  "i18n": [
+    {
+      "code": "en",
+      "keys": 641
+    },
+    {
+      "code": "es",
+      "keys": 641
+    }
+  ],
+  "envVars": [
+    "EXPO_PUBLIC_BACKEND",
+    "EXPO_PUBLIC_RAWG_KEY",
+    "EXPO_PUBLIC_SUPABASE_ANON_KEY",
+    "EXPO_PUBLIC_SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_URL",
+    "TMDB_ACCESS_TOKEN"
+  ]
+}

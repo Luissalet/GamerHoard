@@ -12,3 +12,8 @@ review-queue.json
 _parity.mjs
 apps/mobile/assets/seed.json
 *.jks
+*.keystore
+server/node_modules/
+apps/mobile/.env
+apps/mobile/.env.local
+apps/mobile/dist/
