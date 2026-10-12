@@ -53,6 +53,15 @@ test('library: visible games in screen order, playing first without registration
   assert.equal(buildContext({ pathname: '/', games, limit: 1 }).active_objects.length, 1);
 });
 
+test('an explicitly empty filtered library has no active game objects', () => {
+  const ctx = buildContext({ pathname: '/', games: [game()], registered: {
+    visibleIds: [], editor: { kind: 'search', fields: { query: 'No match' } },
+  } });
+  assert.deepEqual(ctx.active_objects, []);
+  assert.equal(ctx.view.total_games, 1);
+  assert.equal(ctx.view.editor.fields.query, 'No match');
+});
+
 test('unsaved form fields go in view.editor, empty ones are dropped', () => {
   const reg = mergeRegistrations([
     { view: { tab: 'info' } },

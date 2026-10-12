@@ -236,7 +236,8 @@ export function NotesCard({ value, onSave }: { value: string | null; onSave: (v:
   const { t } = useTranslation();
   const [text, setText] = useState(value ?? '');
   const [dirty, setDirty] = useState(false);
-  useEffect(() => { setText(value ?? ''); setDirty(false); }, [value]);
+  // A turn refresh can replace the saved note while the user is still editing.
+  useEffect(() => { if (!dirty) setText(value ?? ''); }, [value]);
   useCopilotView('notes', dirty ? { editor: { kind: 'game', fields: { notes: text } } } : null, [dirty, text]);
   return (
     <View style={{ paddingHorizontal: space(4), marginTop: space(5) }}>

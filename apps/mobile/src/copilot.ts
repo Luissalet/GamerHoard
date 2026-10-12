@@ -20,6 +20,8 @@ async function getJson<T>(path: string): Promise<T | null> {
 async function context(_base?: unknown): Promise<CopilotContext> {
   try {
     const pathname = (globalThis as any).location?.pathname ?? '/';
+    // Keep the screen and its pending fields together while native reads resolve.
+    const registered = structuredClone(registeredView());
     const route = routeInfo(pathname);
     let game: ApiGame | null = null;
     let games: ApiGame[] = [];
@@ -27,7 +29,7 @@ async function context(_base?: unknown): Promise<CopilotContext> {
       if (route.page === 'game' && route.gameId) game = await getJson<ApiGame>(`/api/games/${route.gameId}`);
       else if (['library', 'stats', 'profile'].includes(route.page)) games = (await getJson<{ games: ApiGame[] }>('/api/games?limit=500'))?.games ?? [];
     }
-    return buildContext({ pathname, game, games, registered: registeredView() });
+    return buildContext({ pathname, game, games, registered });
   } catch {
     return { active_objects: [], view: { page: 'unknown' } };
   }

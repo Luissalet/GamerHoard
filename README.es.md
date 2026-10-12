@@ -52,6 +52,8 @@ Todas las páginas que sirve el servidor llevan el botón de Faustus (abajo a la
 
 Tras cada turno de Faustus se refrescan una vez las listas abiertas sin perder lo que estás escribiendo. Define `HOARD_COPILOT=0` antes de arrancar el servidor para quitar el botón. Las rutas están en [docs/API.md](docs/API.md).
 
+Cada petición de contexto captura la pantalla y los campos pendientes antes de que terminen las lecturas nativas, para no mezclar dos vistas si navegas durante la petición. Una biblioteca filtrada sin coincidencias envía cero juegos. Las notas personales que estás editando siguen pendientes cuando un turno actualiza la nota guardada; el siguiente Guardar escribe el borrador local conservado.
+
 ## Herramientas MCP
 
 - `gamer_list`, `gamer_get`: buscar e inspeccionar juegos, con filtros de estado, favorito y plataforma y paginación (`offset`).

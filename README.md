@@ -52,6 +52,8 @@ Every page the server sends carries the Faustus button (bottom right). It opens 
 
 After each Faustus turn the open lists refresh once without losing what you are typing. Set `HOARD_COPILOT=0` before starting the server to remove the button. The routes are listed in [docs/API.md](docs/API.md).
 
+Each context request captures the screen and pending fields before its native reads finish, so navigating during a request does not mix two views. A filtered library with no matches sends no game objects. Personal notes being edited remain dirty when a turn refresh changes the saved note; the next Save writes the retained local draft.
+
 ## MCP tools
 
 - `gamer_list`, `gamer_get`: find and inspect games, with status, favourite and platform filters and paging (`offset`).

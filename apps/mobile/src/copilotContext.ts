@@ -90,7 +90,7 @@ export function buildContext(input: ContextInput): CopilotContext {
     if (input.game) objects = [gameObject(input.game)];
   } else if (route.page === 'library') {
     const byId = new Map(games.map((g) => [g.tvdbId, g]));
-    const ordered = reg.visibleIds?.length
+    const ordered = reg.visibleIds !== undefined
       ? reg.visibleIds.map((id) => byId.get(id)).filter((g): g is ApiGame => !!g)
       : [...games].sort((a, b) => Number(b.state === 'playing') - Number(a.state === 'playing'));
     objects = ordered.slice(0, limit).map(gameObject);
