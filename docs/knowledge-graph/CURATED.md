@@ -2,7 +2,7 @@
 > Edit this file freely; `generate.mjs` injects it verbatim into `MAP.md`.
 
 ### North star & positioning
-GamerHoard is a **local, single-user video-game library**. One JSON file (`~/.gamerhoard/library.json`) is shared by a web app (served by `server/index.mjs`), the Faustus MCP tools (`mcp/server.mjs`) and, separately, a native Expo app with its own SQLite. No accounts, no cloud, no public site. Metadata comes from **RAWG**; the hero import is your **Steam** library. User docs: `README.md` / `README.es.md`; REST and copilot routes: `docs/API.md`; product tour (Spanish): `GAMERHOARD.md`.
+GamerHoard is a **local, single-user video-game library**. One JSON file (`~/.gamerhoard/library.json`) is shared by a web app (served by `server/index.mjs`), the Faustus MCP tools (`mcp/server.mjs`) and, separately, a native Expo app with its own SQLite. Shared mode opens without login; historical optional cloud mode is retained and public deployment is unchanged. Metadata comes from **RAWG**; the hero import is your **Steam** library. User docs: `README.md` / `README.es.md`; REST and copilot routes: `docs/API.md`; product tour (Spanish): `GAMERHOARD.md`.
 
 ### Inherited names, new semantics — the thing that trips everyone up
 The client began as an older series tracker and **kept its schema/method names** with game meaning. Internalise this map or every grep result will mislead you:
@@ -40,7 +40,7 @@ Read-only, in-flight deduped, two-tier cache (memory → AsyncStorage/IndexedDB,
 `window.hoardCopilot` (`src/copilot.ts`) is installed from the root layout (web only). Pure builders live in `src/copilotContext.ts`; mounted screens register what they show (visible games, unsaved form fields) with `useCopilotView` (`src/copilotRegistry.ts`). `onTurnEnd` and `hoard:copilot-turn-end` call `refreshAllQueries()` (debounced) so lists refresh without remounting forms. The launcher, the relay routes and the injection come from `server/hoard-commons` (vendored family helpers).
 
 ### Landmines
-- **Three backends, one contract.** Any `DataSource` method must exist in `local.ts`, `localapi.ts` and `memory.ts`. The coverage table in `MAP.md` catches a miss.
+- **Four data sources, one contract.** Any `DataSource` method must exist in `local.ts`, `localapi.ts`, `memory.ts` and `supabase.ts`. The coverage table in `MAP.md` catches a miss.
 - **One library file, two processes.** Only `mcp/library.mjs` touches it; both processes re-read it when mtime/size changes. REST calls are serialised.
 - **Web vs native split.** `src/db/index.ts` vs `src/db/index.web.ts` keep `expo-sqlite` out of the web bundle. Never import `./local` from web code.
 - **Real `node_modules` for the web build.** A junction to another checkout makes `expo export` write asset paths outside `dist`.

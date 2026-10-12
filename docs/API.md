@@ -53,3 +53,13 @@ The client side is `window.hoardCopilot` (`apps/mobile/src/copilot.ts`, context 
 - `onTurnEnd(detail)` and the `hoard:copilot-turn-end` event refresh the mounted lists once (debounced) and keep unsaved form input.
 
 `HOARD_COPILOT=0` disables the injection. `faustus-plugin.json` lists the context keys under `x-family.copilot`.
+
+## Recovered data sources
+
+Settings lets the web user choose the shared Faustus library, the historical browser library, or the cloud account. `EXPO_PUBLIC_BACKEND=localapi` remains the web default; `memory` and historical `local` use MemorySource on web, `local` uses SQLite on native, and `supabase` selects SupabaseSource on either platform. Cloud mode reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` from configuration and uses the original login flow. Shared/browser modes neither require login nor refresh a cloud session. The cloud landing page provides a way back to the shared library.
+
+Shared games and sessions still use the native REST/MCP library. Lists, movies and other historical browser collections reuse MemorySource and its existing localStorage keys, including persisted changes after reopening. A game can be added to a restored custom list from its detail page. Cloud social/account functions use the recovered Supabase client/schema; browser collections are not advertised as published or synced. The original Steam account flow remains available in cloud mode alongside the current manual/profile import. Native unsupported episode-counter writes report their domain limitation instead of silently reporting success.
+
+`packages/` and `supabase/` are recovered historical source; no migrations, deployment, provider accounts or real credentials are run by this restoration. iOS/Android runtime and real cloud connectivity need their configured environment; typechecking and deterministic client contract fixtures are separate from such live validation.
+
+Copilot context identifies the selected backend. Real custom lists are read through the active DataSource; missing/new lists yield no object. Profile metadata is read from the active source. Games in original sources retain their actual numeric IDs, without inventing native shared-library UUIDs. The R2 stable snapshot, empty-filter and dirty-note fixes are retained.

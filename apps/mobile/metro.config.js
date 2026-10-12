@@ -14,4 +14,14 @@ config.resolver.nodeModulesPaths = [
 ];
 config.resolver.disableHierarchicalLookup = true;
 
+// supabase-js imports optional telemetry deps (@opentelemetry/api) that aren't needed
+// on React Native / web. Point them at an empty module so Metro can bundle.
+const EMPTY = path.resolve(projectRoot, 'stubs/empty.js');
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === '@opentelemetry/api' || moduleName.startsWith('@opentelemetry/')) {
+    return { type: 'sourceFile', filePath: EMPTY };
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
+
 module.exports = config;

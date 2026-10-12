@@ -5,6 +5,8 @@ import { BACKEND } from '../lib/backend';
 import type { DataSource } from './types';
 import { MemorySource } from './memory';
 import { LocalApiSource } from './localapi';
+import { SupabaseSource } from './supabase';
 
-export const data: DataSource = BACKEND === 'memory' ? new MemorySource() : new LocalApiSource();
+export const data: DataSource = BACKEND === 'supabase' ? new SupabaseSource()
+  : BACKEND === 'localapi' ? new LocalApiSource() : new MemorySource();
 export * from './types';

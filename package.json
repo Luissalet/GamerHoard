@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Local single-user video game library: web app, Faustus MCP tools and a native app over the same library",
   "workspaces": [
-    "apps/mobile"
+    "apps/mobile",
+    "packages/core",
+    "packages/importer"
   ],
   "scripts": {
     "start": "node mcp/server.mjs",

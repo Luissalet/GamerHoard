@@ -1,6 +1,6 @@
 # GamerHoard
 
-Biblioteca de **videojuegos** local y de un solo usuario. Una app web en tu ordenador, las herramientas MCP de Faustus y una app nativa opcional comparten **un único archivo** (`~/.gamerhoard/library.json`). Los datos de catálogo vienen de **RAWG** (https://rawg.io) y la importación estrella es la de **Steam**. Sin cuentas, sin nube, sin web pública.
+Biblioteca de **videojuegos** local y de un solo usuario. Una app web en tu ordenador, las herramientas MCP de Faustus comparten **un único archivo**; una app nativa opcional conserva además su SQLite (`~/.gamerhoard/library.json`). Los datos de catálogo vienen de **RAWG** (https://rawg.io) y la importación estrella es la de **Steam**. El modo compartido se abre sin cuenta; se conservan los modos originales de navegador, SQLite y Supabase, incluidas las pantallas de cuentas y comunidad. La web pública no se modifica.
 
 Guía de uso y herramientas: `README.es.md`. Rutas REST y del copiloto: `docs/API.md`.
 

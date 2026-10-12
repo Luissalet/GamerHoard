@@ -48,7 +48,7 @@ export class MemorySource implements DataSource {
 
   async ready() {
     if (this.inited) return;
-    try { if ((globalThis as any).localStorage?.getItem('wh_cleared') === '1') { this.profileRow = this.emptyProfile(); this.inited = true; return; } } catch { /* ignore */ }
+    try { if ((globalThis as any).localStorage?.getItem('wh_cleared') === '1') { this.profileRow = this.emptyProfile(); this.loadPersisted(); this.inited = true; return; } } catch { /* ignore */ }
     const s: any = this.importedSeed() ?? seed;
     this.profileRow = {
       handle: s.profile.handle, series_clock: s.profile.seriesClock, episodes: s.profile.episodes,
@@ -107,8 +107,7 @@ export class MemorySource implements DataSource {
       const g: any = globalThis as any;
       if (!g.localStorage) return;
       const raw = g.localStorage.getItem('wh_state_v3');
-      if (!raw) return;
-      const st = JSON.parse(raw);
+      const st = JSON.parse(raw || '{}');
       for (const [tv, keys] of Object.entries(st.eps ?? {})) this.epState.set(Number(tv), new Set(keys as string[]));
       this.epSeeded = new Set((st.seeded ?? []).map(Number));
       for (const sh of (st.added?.shows ?? [])) if (!this.shows.some((x) => x.tvdb_id === sh.tvdb_id)) { this.shows.push(sh); this.addedShows.push(sh); }
@@ -158,7 +157,7 @@ export class MemorySource implements DataSource {
   }
 
   async clearData() {
-    try { const ls = (globalThis as any).localStorage; ls?.setItem('wh_cleared', '1'); ls?.removeItem('wh_state_v3'); } catch { /* ignore */ }
+    try { const ls = (globalThis as any).localStorage; ls?.setItem('wh_cleared', '1'); for (const key of ['wh_state_v3', 'wh_lists_v1', 'wh_recent_v1']) ls?.removeItem(key); } catch { /* ignore */ }
     this.profileRow = this.emptyProfile();
     this.shows = []; this.recent = []; this.lists = []; this.listItemsByList = new Map(); this.movies = []; this.reviews = []; this.badges = [];
     this.epState = new Map(); this.epSeeded = new Set(); this.addedShows = []; this.addedMovies = []; this.mvChecked = new Set(); this.epRw = new Map();
@@ -179,7 +178,7 @@ export class MemorySource implements DataSource {
   async getShowById(tvdbId: number) { return this.shows.find((x) => x.tvdb_id === tvdbId) ?? null; }
   async getFavorites(limit = 60) { return this.shows.filter((s) => s.is_favorite).sort((a, b) => (b.last_watched_at ?? '').localeCompare(a.last_watched_at ?? '')).slice(0, limit); }
   async getFavoriteMovies(limit = 60) { return this.movies.filter((m) => m.is_favorite).sort((a, b) => (b.watched_at ?? '').localeCompare(a.watched_at ?? '')).slice(0, limit); }
-  async getRecent(limit = 30) {
+  async getRecent(limit = 30): Promise<RecentRow[]> {
     // New events carry their entity id; imported ones fall back to a title match.
     const showByTitle = new Map(this.shows.map((s) => [s.title, s]));
     const movieByTitle = new Map(this.movies.map((m) => [m.title, m]));
@@ -193,14 +192,14 @@ export class MemorySource implements DataSource {
   async getListById(listId: number) { return this.lists.find((l) => l.id === listId) ?? null; }
   async getListItems(listId: number): Promise<ListItemRow[]> {
     const raw = this.listItemsByList.get(listId) ?? [];
-    return raw.map((it): ListItemRow => {
+    return Promise.all(raw.map(async (it): Promise<ListItemRow> => {
       if (it.kind === 'series') {
-        const s = this.shows.find((x) => x.tvdb_id === it.tvdb);
+        const s = it.tvdb == null ? null : await this.getShowById(it.tvdb);
         return { kind: 'series', tvdb_id: it.tvdb, uuid: null, title: s?.title ?? '', poster: s?.poster ?? null, year: null, watched_at: null, last_watched_at: s?.last_watched_at ?? null };
       }
       const m = this.movies.find((x) => x.uuid === it.uuid);
       return { kind: 'movie', tvdb_id: null, uuid: it.uuid, title: m?.title ?? '', poster: m?.poster ?? null, year: m?.year ?? null, watched_at: m?.watched_at ?? null, last_watched_at: null };
-    });
+    }));
   }
   private persistRecent() {
     try { this.safeSet('wh_recent_v1', JSON.stringify(this.recent.slice(0, 150))); } catch { /* ignore */ }

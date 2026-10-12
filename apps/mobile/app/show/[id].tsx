@@ -15,6 +15,8 @@ import { isSteamId, steamStoreUrl } from '../../src/steam';
 import { Genres, Meta, WherePlay, PlatformOwnership, StudioRow, SagaRow, Trailer, AlsoPlayed, Screenshots, Scores, PosterPickerModal, RatingStars, NotesCard } from '../../src/detail';
 import { SessionsCard } from '../../src/SessionsCard';
 import { useCopilotView } from '../../src/copilotRegistry';
+import { ShareButton } from '../../src/ShareButton';
+import { ListPickerModal } from '../../src/ListPickerModal';
 import { Fireworks } from '../../src/Fireworks';
 import { progress, categoryOf, type GameState } from '../../src/categories';
 
@@ -50,6 +52,7 @@ export default function GameDetail() {
   const [dlcDone, setDlcDone] = useState<Set<number>>(new Set());
   const [celebrate, setCelebrate] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [listPickerOpen, setListPickerOpen] = useState(false);
   const [detNonce, setDetNonce] = useState(0);
   useCopilotView('game', { view: { tab } }, [tab]);
 
@@ -259,6 +262,8 @@ export default function GameDetail() {
                 </Pressable>
               ) : null}
               <NotesCard value={game.notes ?? null} onSave={saveNotes} />
+              <Pressable onPress={() => setListPickerOpen(true)} style={{ padding: space(3), marginVertical: space(2) }}><Text style={[font.body, { color: colors.accent }]}>{t('lists.addTo')}</Text></Pressable>
+              <ListPickerModal visible={listPickerOpen} target={{ kind: 'series', tvdb: gameId }} onEnsure={ensureInLibrary} onClose={() => setListPickerOpen(false)} />
               {inLibrary ? <SessionsCard gameId={game.tvdb_id} onLogged={refreshGame} /> : null}
               <StudioRow developers={det?.developers} publishers={det?.publishers} />
               <SagaRow gameId={det?.tmdbId} currentId={det?.tmdbId} />
@@ -293,6 +298,7 @@ export default function GameDetail() {
       <PosterPickerModal visible={pickerOpen} tmdbId={det?.tmdbId} current={game.poster} onClose={() => setPickerOpen(false)} onPick={pickCover} />
       {celebrate && <Fireworks label={celebrate} onDone={() => setCelebrate(null)} />}
       <Pressable onPress={goBack} style={[s.back, { top: insets.top + space(2) }]} hitSlop={10}><Ionicons name="chevron-down" size={26} color={colors.text} /></Pressable>
+      <ShareButton title={game.title} path={`/show/${game.tvdb_id}`} top={insets.top + space(2)} />
     </View>
   );
 }

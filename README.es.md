@@ -2,13 +2,13 @@
 
 [English](README.md)
 
-Una **biblioteca local de videojuegos para un solo usuario**. Un único archivo JSON (`~/.gamerhoard/library.json`) lo comparten tres interfaces:
+Una **biblioteca de videojuegos con app web y nativa**. En el modo compartido, la web y las herramientas MCP usan el mismo JSON (`~/.gamerhoard/library.json`). Se conservan también los modos originales de navegador, dispositivo y nube:
 
 - una **app web** servida en tu propio ordenador (`http://127.0.0.1:5207`),
 - las **herramientas MCP** que usa Faustus (o cualquier cliente MCP) desde un chat,
 - una **app nativa** opcional (Expo, SQLite en el dispositivo).
 
-No hay cuentas, ni inicio de sesión, ni nube, ni web pública. Todo se queda en el ordenador. Necesita Node.js 22 o superior.
+El modo local compartido se abre sin iniciar sesión. Supabase conserva opcionalmente las cuentas y funciones de comunidad; la app nativa puede usar su propia biblioteca SQLite. Esta recuperación local no cambia el despliegue público de gamer-hoard.com. Necesita Node.js 22 o superior.
 
 ## Puesta en marcha
 
@@ -98,7 +98,15 @@ npm run typecheck    # el cliente Expo
 
 ## Límites
 
-- Un usuario, un ordenador: sin cuentas, sincronización ni compartir. Las películas, listas, reseñas e insignias del antiguo tracker ya no existen.
+- Las herramientas MCP trabajan con los juegos de la biblioteca local compartida; no afirman acceso a las colecciones del navegador ni a la cuenta en la nube. Se han recuperado listas, reseñas, cuentas y pantallas sociales, películas, insignias, parsers de importación y Supabase. Las compatibilidades de catálogo heredadas siguen como antes; no se añade un nuevo proveedor de películas o personas.
 - La web no muestra los logros de Steam (las herramientas MCP y `/api/games/<id>/achievements` sí).
-- «Borrar datos» no se ofrece en la web; borra el archivo de la biblioteca.
+- En el modo compartido, Borrar datos vacía las colecciones del navegador y conserva los juegos compartidos. La interfaz lo explica y permite exportar ambos. Los demás modos conservan su operación original de borrado.
 - Los metadatos online (portadas, lista de DLC, tráilers) necesitan `RAWG_API_KEY`.
+
+## Fuentes de datos recuperadas
+
+En Ajustes puedes elegir la biblioteca compartida con Faustus, la biblioteca original de este navegador o tu cuenta en la nube. `EXPO_PUBLIC_BACKEND=localapi` sigue siendo el modo web por defecto. `memory` y el `local` original usan el almacenamiento del navegador en web; `local` usa SQLite en nativo; `supabase` selecciona el adaptador original en ambas plataformas. La nube utiliza `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY` configurados y el inicio de sesión original. Los modos locales se abren sin iniciar sesión ni renovar una sesión de nube. Desde la entrada de la nube puedes volver a la biblioteca compartida.
+
+Los juegos y sesiones compartidos siguen usando REST/MCP y el mismo archivo nativo. Las listas, películas y demás colecciones del navegador reutilizan MemorySource y sus claves de almacenamiento existentes; las modificaciones sobreviven a la recarga. Puedes añadir un juego a una lista desde su ficha. Las cuentas y funciones sociales utilizan Supabase recuperado; las colecciones del navegador no se presentan como publicadas o sincronizadas. La importación mediante cuenta de Steam vuelve a estar disponible en nube junto a la importación actual por perfil y clave. Una operación de contadores de episodios no admitida por juegos compartidos comunica su límite en lugar de afirmar un guardado vacío.
+
+Se recuperan `packages/` y `supabase/` como código histórico. Esta entrega no ejecuta migraciones, despliegues, cuentas de proveedores ni credenciales reales. El funcionamiento iOS/Android y la conexión a una nube real requieren su entorno configurado; no se confunden con la comprobación de tipos y los fixtures de contrato privados.

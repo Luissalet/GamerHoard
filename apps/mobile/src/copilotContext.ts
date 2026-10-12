@@ -1,6 +1,7 @@
 // Pure context builders for the Faustus copilot (window.hoardCopilot.context). No React Native
 // imports and no relative value imports, so `node --test` can load this file directly.
 import type { ApiGame } from './db/localapiMap';
+import type { ShowRow, ListRow, Profile } from './db/types';
 
 export interface ActiveObject { kind: string; object_id: string; title?: string; [key: string]: unknown }
 export interface EditorState { kind: string; dirty: boolean; fields: Record<string, unknown> }
@@ -11,7 +12,7 @@ export interface ViewRegistration {
   /** Library games currently listed on screen (tvdbId, in display order). */
   visibleIds?: number[];
 }
-export interface RouteInfo { page: string; gameId: number | null }
+export interface RouteInfo { page: string; gameId: number | null; listId?: number | null }
 
 const PAGES: Record<string, string> = {
   '/': 'library', '/explore': 'explore', '/profile': 'profile', '/stats': 'stats',
@@ -23,6 +24,9 @@ export function routeInfo(pathname: string | null | undefined): RouteInfo {
   const m = p.match(/^\/show\/(\d+)$/);
   if (m) return { page: 'game', gameId: Number(m[1]) };
   if (/^\/show\//.test(p)) return { page: 'game', gameId: null };
+  const list = p.match(/^\/list\/(\d+)$/);
+  if (list) return { page: 'list', gameId: null, listId: Number(list[1]) };
+  if (/^\/list\//.test(p)) return { page: 'list', gameId: null, listId: null };
   return { page: PAGES[p] ?? 'other', gameId: null };
 }
 
@@ -74,6 +78,9 @@ export interface ContextInput {
   games?: ApiGame[];
   registered?: ViewRegistration;
   limit?: number;
+  list?: ListRow | null;
+  profile?: Profile | null;
+  backend?: string;
 }
 
 export interface CopilotContext { active_objects: ActiveObject[]; view: Record<string, unknown> }
@@ -85,6 +92,7 @@ export function buildContext(input: ContextInput): CopilotContext {
   const games = input.games ?? [];
   let objects: ActiveObject[] = [];
   const view: Record<string, unknown> = { page: route.page, ...(reg.view ?? {}) };
+  if (input.backend) view.backend = input.backend;
 
   if (route.page === 'game') {
     if (input.game) objects = [gameObject(input.game)];
@@ -95,8 +103,11 @@ export function buildContext(input: ContextInput): CopilotContext {
       : [...games].sort((a, b) => Number(b.state === 'playing') - Number(a.state === 'playing'));
     objects = ordered.slice(0, limit).map(gameObject);
     view.total_games = games.length;
+  } else if (route.page === 'list') {
+    if (input.list) objects = [{ kind: 'list', object_id: String(input.list.id), title: input.list.name, items: input.list.item_count, public: !!input.list.is_public }];
   } else if (route.page === 'stats' || route.page === 'profile') {
     view.summary = statsSummary(games);
+    if (route.page === 'profile' && input.profile) view.profile = { ...input.profile };
   }
 
   if (reg.editor) {

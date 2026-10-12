@@ -1,11 +1,11 @@
 // Local web data source: the browser talks to server/index.mjs, which reads and writes the
 // same library file as the Faustus MCP tools (~/.gamerhoard/library.json). There is no
-// account and no cloud; movies, lists, reviews and badges belong to the old tracker and are
-// empty here.
+// shared game library. Historical collections reuse the original browser storage adapter.
 import type {
   DataSource, Profile, ShowRow, RecentRow, ListRow, ListItemRow, MovieRow, ReviewRow, BadgeRow, AddShow, AddMovie, SteamGame, GameSession,
 } from './types';
 import { STEAM_OFFSET, apiGameToRow, genreIdsToNames, type ApiGame } from './localapiMap';
+import { MemorySource } from './memory';
 
 const BASE = (typeof process !== 'undefined' && (process.env as any)?.EXPO_PUBLIC_GAMERHOARD_URL) || '';
 
@@ -31,9 +31,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return json as T;
 }
 
-const EMPTY_PROFILE: Profile = { handle: null, series_clock: null, episodes: 0, movies_clock: null, movies: 0, shows_added: 0, following: 0, lists: 0, badges: 0, reactions: 0, comments: 0, character_votes: 0 };
-
-export class LocalApiSource implements DataSource {
+export class LocalApiSource extends MemorySource implements DataSource {
   private rows = new Map<number, ShowRow>();
   private okPromise: Promise<void> | null = null;
 
@@ -44,14 +42,13 @@ export class LocalApiSource implements DataSource {
   }
 
   ready() {
-    if (!this.okPromise) this.okPromise = request<unknown>('GET', '/api/health').then(() => undefined, (e) => { this.okPromise = null; throw e; });
+    if (!this.okPromise) this.okPromise = super.ready().then(() => request<unknown>('GET', '/api/health')).then(() => undefined, (e) => { this.okPromise = null; throw e; });
     return this.okPromise;
   }
-  async clearData(): Promise<void> { throw new LocalApiError(400, 'The shared library is cleared through Faustus or by deleting its file.'); }
-  async reimport(): Promise<void> { /* the library file is the single source of truth */ }
-  async importData(seed: unknown): Promise<void> { await request('POST', '/api/import', seed); }
-
-  async getProfile() { return { ...EMPTY_PROFILE }; }
+  async importData(seed: unknown): Promise<void> {
+    if (Array.isArray((seed as any)?.games)) await request('POST', '/api/import', seed);
+    else await super.importData(seed);
+  }
   private async all(): Promise<ShowRow[]> {
     const out: ShowRow[] = [];
     for (let offset = 0; ; offset += 500) {
@@ -80,12 +77,12 @@ export class LocalApiSource implements DataSource {
 
   async getRecent(limit = 30): Promise<RecentRow[]> {
     const res = await request<{ sessions: any[] }>('GET', `/api/sessions?limit=${Math.min(500, limit)}`);
-    return res.sessions.map((s, i) => ({
+    const shared: RecentRow[] = res.sessions.map((s, i) => ({
       id: i + 1, kind: 'game', title: s.title, season: null, episode: null, watched_at: s.playedAt,
       poster: s.coverUrl ?? null, show_tvdb: s.tvdbId ?? null, movie_uuid: null, minutes: s.minutes, notes: s.notes || null,
     }));
+    return [...shared, ...await super.getRecent(limit)].sort((a, b) => (b.watched_at || '').localeCompare(a.watched_at || '')).slice(0, limit);
   }
-  async logRecent() { /* sessions are logged with logSession */ }
   async getSessions(tvdbId: number): Promise<GameSession[]> {
     const res = await request<{ sessions: GameSession[] }>('GET', `/api/games/${tvdbId}/sessions?limit=50`);
     return res.sessions;
@@ -161,37 +158,12 @@ export class LocalApiSource implements DataSource {
     await this.getShowById(tvdbShow);
   }
   async seedEpState() { /* DLC state lives in the library */ }
-  async setProgress() { /* progress is derived from DLC and sessions */ }
-  async markWatched() { /* not used for games */ }
-  async setShowNextAir() { /* no air dates for games */ }
-  async rewatchEpisode() { /* not used for games */ }
+  async setProgress() { throw new LocalApiError(400, 'Shared game progress comes from DLC completion and play sessions. Use the browser library for historical episode counters.'); }
+  async markWatched(tvdbId: number) { await this.setShowState(tvdbId, 'archived'); }
+  async setShowNextAir() { throw new LocalApiError(400, 'Episode air dates belong to the browser or cloud library, not shared games.'); }
+  async rewatchEpisode() { throw new LocalApiError(400, 'Log another play session for a shared game. Episode rewatches belong to the browser or cloud library.'); }
   async getEpisodeRewatches() { return []; }
 
-  // ---- Not part of the local game library: kept so the contract stays whole. ----
-  async getMovies(): Promise<MovieRow[]> { return []; }
-  async getUpcomingMovies(): Promise<MovieRow[]> { return []; }
-  async getMovieByUuid(): Promise<MovieRow | null> { return null; }
-  async getReviews(): Promise<ReviewRow[]> { return []; }
-  async getBadges(): Promise<BadgeRow[]> { return []; }
-  async getFavoriteMovies(): Promise<MovieRow[]> { return []; }
-  async getLists(): Promise<ListRow[]> { return []; }
-  async getListById(): Promise<ListRow | null> { return null; }
-  async getListItems(): Promise<ListItemRow[]> { return []; }
-  async createList(): Promise<number | null> { return null; }
-  async renameList() {}
-  async deleteList() {}
-  async addToList(_l: number, _i: { kind: 'series' | 'movie' }) {}
-  async removeFromList(_l: number, _i: { kind: 'series' | 'movie' }) {}
-  async rewatchMovie() {}
-  async setMovieFavorite() {}
-  async addMovie(_p: AddMovie) {}
-  async setMovieWatched(_p: AddMovie, _w: boolean) {}
-  async setMovieReleaseDate() {}
-  async getUncheckedPendientes(): Promise<MovieRow[]> { return []; }
-  async markMovieChecked() {}
-  async setMoviePoster() {}
-  async setMovieTmdbId() {}
-  async setMovieGenres() {}
-  async isMovieInLibrary() { return false; }
-  async removeMovie() {}
+  // Lists, movies, reviews, badges and their writes use MemorySource's original
+  // browser persistence, while game writes above keep using the shared native API.
 }

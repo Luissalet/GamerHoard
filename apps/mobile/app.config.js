@@ -33,6 +33,8 @@ module.exports = {
   ...appJson.expo,
   extra: {
     ...(appJson.expo.extra || {}),
+    supabaseUrl: val('EXPO_PUBLIC_SUPABASE_URL'),
+    supabaseAnonKey: val('EXPO_PUBLIC_SUPABASE_ANON_KEY'),
     // A RAWG key only matters for native builds (the web app asks the local server, which
     // keeps the key out of the bundle). Leave it empty for web.
     rawgKey: val('EXPO_PUBLIC_RAWG_KEY'),

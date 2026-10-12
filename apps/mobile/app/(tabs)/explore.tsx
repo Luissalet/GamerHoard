@@ -7,10 +7,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, space, font, radius } from '../../src/theme';
+import { NotificationBell } from '../../src/NotificationBell';
 import { DragScrollView } from '../../src/DragScrollView';
 import { data } from '../../src/db';
 import { useCopilotView } from '../../src/copilotRegistry';
-import { searchMulti, trending, newReleases, popularList, topRatedList, upcomingMovies, upcomingShows, detailsById, movieReleaseDate, tvdbForTmdb, tmdbImg, rawgAvailable, genreList, discoverByGenres, platformList, discoverByPlatform, type DiscoverItem, type PlatformDef } from '../../src/tmdb';
+import { rawgAvailable } from '../../src/tmdb';
+import { isCloud } from '../../src/lib/backend';
+import { searchUsers, type UserResult } from '../../src/social';
+import { searchMulti, searchPeople, trending, newReleases, popularList, topRatedList, upcomingMovies, upcomingShows, detailsById, movieReleaseDate, tvdbForTmdb, tmdbImg, tmdbConfigured, genreList, discoverByGenres, platformList, discoverByPlatform, type DiscoverItem, type PersonHit, type PlatformDef } from '../../src/tmdb';
+import { FriendsFeed } from '../../src/FriendsFeed';
 import { SkeletonRow, SkeletonGrid } from '../../src/Skeleton';
 
 const norm = (x: string) => x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -48,6 +53,23 @@ function TabBtn({ label, active, onPress }: { label: string; active: boolean; on
   );
 }
 
+function PersonRow({ u, onPress }: { u: UserResult; onPress: () => void }) {
+  const initial = (u.display_name || u.handle || '?').trim().charAt(0).toUpperCase();
+  return (
+    <Pressable style={s.personRow} onPress={onPress}>
+      {u.avatar_url
+        ? <Image source={{ uri: u.avatar_url }} style={s.avatar} contentFit="cover" />
+        : <View style={[s.avatar, s.avatarFallback]}><Text style={{ color: colors.text, fontWeight: '800', fontSize: 18 }}>{initial}</Text></View>}
+      <View style={{ flex: 1, marginLeft: space(3) }}>
+        {u.display_name ? <Text style={font.h2} numberOfLines={1}>{u.display_name}</Text> : null}
+        <Text style={[font.muted, u.display_name ? null : { color: colors.text, fontWeight: '700' }]} numberOfLines={1}>@{u.handle}</Text>
+        {u.bio ? <Text style={font.muted} numberOfLines={1}>{u.bio}</Text> : null}
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+    </Pressable>
+  );
+}
+
 export default function ExploreScreen() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -55,6 +77,8 @@ export default function ExploreScreen() {
   const numColumns = Math.max(3, Math.min(10, Math.floor(width / 150)));
   const itemWidth = width / numColumns;
   const [query, setQuery] = useState('');
+  const [mainTab, setMainTab] = useState<'discover' | 'friends'>('discover');
+  const [tab, setTab] = useState<'content' | 'people'>('content');
   const [genres, setGenres] = useState<{ name: string; tvId?: number; movieId?: number }[]>([]);
   const [selGenre, setSelGenre] = useState<string | null>(null);
   const [genreSections, setGenreSections] = useState<{ titleKey: string; genre: string; items: DiscoverItem[] }[] | null>(null);
@@ -62,7 +86,10 @@ export default function ExploreScreen() {
   const [selPlatform, setSelPlatform] = useState<number | null>(null);
   const [platformSections, setPlatformSections] = useState<DiscoverItem[] | null>(null);
   const [results, setResults] = useState<DiscoverItem[] | null>(null);
+  const [tmdbPeople, setTmdbPeople] = useState<PersonHit[]>([]);
   const [searching, setSearching] = useState(false);
+  const [people, setPeople] = useState<UserResult[] | null>(null);
+  const [searchingPeople, setSearchingPeople] = useState(false);
   const [sections, setSections] = useState<{ titleKey: string; items: DiscoverItem[] }[]>([]);
   const [libChecked, setLibChecked] = useState<Set<string>>(new Set());
   const [toggled, setToggled] = useState<Map<string, boolean>>(new Map());
@@ -102,7 +129,7 @@ export default function ExploreScreen() {
 
   const { genre: genreParam, ts: genreTs } = useLocalSearchParams<{ genre?: string; ts?: string }>();
   useEffect(() => {
-    if (genreParam) { setSelGenre(String(genreParam)); setQuery(''); }
+    if (genreParam) { setSelGenre(String(genreParam)); setQuery(''); setMainTab('discover'); }
   }, [genreParam, genreTs]);
 
   const { i18n } = useTranslation();
@@ -156,11 +183,21 @@ export default function ExploreScreen() {
   }, []);
 
   useEffect(() => {
-    if (!query.trim()) { setResults(null); return; }
+    if (!query.trim()) { setResults(null); setTmdbPeople([]); return; }
     setSearching(true);
     const t = setTimeout(async () => {
-      setResults(await searchMulti(query)); setSearching(false);
+      const [r, ppl] = await Promise.all([searchMulti(query), searchPeople(query)]);
+      setResults(r); setTmdbPeople(ppl); setSearching(false);
     }, 350);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  // People search (cloud only — handles exist only with Supabase accounts).
+  useEffect(() => {
+    if (!isCloud) return;
+    if (!query.trim()) { setPeople(null); return; }
+    setSearchingPeople(true);
+    const t = setTimeout(async () => { setPeople(await searchUsers(query)); setSearchingPeople(false); }, 350);
     return () => clearTimeout(t);
   }, [query]);
 
@@ -233,26 +270,74 @@ export default function ExploreScreen() {
 
   const cardProps = (it: DiscoverItem) => ({ item: it, onPress: () => open(it), onAdd: () => toggleAdd(it), onAddLong: () => setAddFor(it), added: isChecked(it), busy: busy.has(`${it.kind}:${it.id}`) });
 
+  const showPeople = isCloud && tab === 'people';
+
+  if (isCloud && mainTab === 'friends') {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
+        <View style={s.tabs}>
+          <TabBtn label={t('explore.tabDiscover')} active={false} onPress={() => setMainTab('discover')} />
+          <TabBtn label={t('explore.tabFriends')} active onPress={() => {}} />
+        </View>
+        <FriendsFeed />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
+      {isCloud && (
+        <View style={s.tabs}>
+          <TabBtn label={t('explore.tabDiscover')} active onPress={() => {}} />
+          <TabBtn label={t('explore.tabFriends')} active={false} onPress={() => setMainTab('friends')} />
+        </View>
+      )}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <View style={[s.searchWrap, { flex: 1, marginRight: 0 }]}>
           <Ionicons name="search" size={18} color={colors.textMuted} />
-          <TextInput ref={searchRef} value={query} onChangeText={setQuery} placeholder={t('explore.searchPlaceholder')} placeholderTextColor={colors.textMuted} style={s.search} autoCorrect={false} autoCapitalize="none" />
+          <TextInput ref={searchRef} value={query} onChangeText={setQuery} placeholder={isCloud ? t('explore.searchPlaceholderFull') : t('explore.searchPlaceholder')} placeholderTextColor={colors.textMuted} style={s.search} autoCorrect={false} autoCapitalize="none" />
           {query ? <Pressable onPress={() => setQuery('')}><Ionicons name="close-circle" size={18} color={colors.textMuted} /></Pressable> : null}
         </View>
+        <NotificationBell style={{ marginHorizontal: space(4) }} />
       </View>
 
-      {rawgOk === false && <Text style={[font.muted, { padding: space(4) }]}>{t('explore.tmdbHint')}</Text>}
+      {!tmdbConfigured && !isCloud && <Text style={[font.muted, { padding: space(4) }]}>{t('explore.tmdbHint')}</Text>}
 
       {query.trim() ? (
         <View style={{ flex: 1 }}>
-          {(
+          {isCloud && (
+            <View style={s.tabs}>
+              <TabBtn label={t('explore.tabContent')} active={tab === 'content'} onPress={() => setTab('content')} />
+              <TabBtn label={t('explore.tabPeople')} active={tab === 'people'} onPress={() => setTab('people')} />
+            </View>
+          )}
+
+          {showPeople ? (
+            searchingPeople && !people ? <ActivityIndicator style={{ marginTop: space(6) }} color={colors.accent} /> : (
+              <ScrollView contentContainerStyle={{ paddingVertical: space(2) }}>
+                {(people ?? []).map((u) => <PersonRow key={u.id} u={u} onPress={() => router.push(`/u/${u.handle}`)} />)}
+                {people && people.length === 0 && <Text style={[font.muted, { padding: space(4) }]}>{t('explore.noPeople', { query: query.trim() })}</Text>}
+              </ScrollView>
+            )
+          ) : (
             searching && !results ? <View style={{ paddingTop: space(4) }}><SkeletonGrid columns={numColumns} rows={3} itemWidth={itemWidth} /></View> : (
               <FlashList
                 data={resultRows}
                 keyExtractor={(row, idx) => 'r' + idx + (row[0] ? row[0].kind + row[0].id : '')}
                 contentContainerStyle={{ padding: space(2), paddingBottom: space(8) }}
+                ListHeaderComponent={tmdbPeople.length > 0 ? (
+                  <View>
+                    <Text style={[font.h1, { fontSize: 20, paddingHorizontal: space(2), marginTop: space(1), marginBottom: space(2) }]}>{t('explore.secPeople')}</Text>
+                    <DragScrollView contentContainerStyle={{ gap: space(3), paddingHorizontal: space(2), paddingBottom: space(2) }}>
+                      {tmdbPeople.map((p) => (
+                        <Pressable key={p.id} style={{ width: 84, alignItems: 'center' }} onPress={() => router.push(`/person/${p.id}`)}>
+                          <Image source={{ uri: tmdbImg(p.profile, 'w185')! }} style={s.personFace} contentFit="cover" transition={120} />
+                          <Text style={[font.body, { fontSize: 12, marginTop: 4, textAlign: 'center' }]} numberOfLines={1}>{p.name}</Text>
+                        </Pressable>
+                      ))}
+                    </DragScrollView>
+                  </View>
+                ) : null}
                 ListEmptyComponent={results && results.length === 0 ? <Text style={[font.muted, { padding: space(4) }]}>{t('explore.noResults')}</Text> : null}
                 renderItem={({ item: row }) => (
                   <View style={{ flexDirection: 'row' }}>
@@ -319,7 +404,7 @@ export default function ExploreScreen() {
               </DragScrollView>
             </View>
           ))}
-          {!selGenre && selPlatform == null && !sections.length  && rawgOk !== false && (
+          {!selGenre && selPlatform == null && !sections.length && tmdbConfigured && (
             <View style={{ gap: space(6), marginTop: space(6) }}>
               <SkeletonRow /><SkeletonRow /><SkeletonRow />
             </View>
@@ -360,6 +445,10 @@ const s = StyleSheet.create({
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border, paddingHorizontal: space(2) },
   tabBtn: { flex: 1, alignItems: 'center', paddingVertical: space(3), gap: space(2) },
   tabInd: { height: 3, width: '60%', borderRadius: 2 },
+  personRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: space(4), paddingVertical: space(3) },
+  personFace: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.surfaceAlt },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.surfaceAlt },
+  avatarFallback: { alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
   gChip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 7, backgroundColor: colors.surface },
   gChipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   gChipText: { color: colors.text, fontWeight: '700', fontSize: 13 },

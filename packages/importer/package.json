@@ -1,0 +1,27 @@
+{
+  "name": "@watchhoard/importer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Import a TV Time GDPR export into Watch Hoard (parse → resolve TVDB/IMDb→TMDB → upsert).",
+  "bin": {
+    "watchhoard-import": "src/run.ts"
+  },
+  "scripts": {
+    "validate": "tsx src/run.ts validate ../../../tv-time-data",
+    "import": "tsx src/run.ts import ../../../tv-time-data",
+    "seed": "tsx src/run.ts local ../../../tv-time-data ../../apps/mobile/assets/seed.json",
+    "favorites": "tsx src/run.ts favorites ../../../tv-time-data ../../apps/mobile/assets/seed.json",
+    "enrich": "tsx src/run.ts enrich ../../apps/mobile/assets/seed.json",
+    "push": "tsx src/run.ts push"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.6",
+    "@supabase/supabase-js": "^2.45.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "@types/node": "^22.7.0"
+  }
+}

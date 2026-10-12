@@ -2,13 +2,13 @@
 
 [Español](README.es.md)
 
-A **local, single-user video game library**. One JSON file (`~/.gamerhoard/library.json`) is shared by three front ends:
+A **video game library with web and native apps**. In shared local mode, the web app and MCP tools use the same JSON file (`~/.gamerhoard/library.json`). The historical browser, device and optional cloud data sources remain selectable:
 
 - a **web app** served on your own computer (`http://127.0.0.1:5207`),
 - the **MCP tools** that Faustus (or any MCP client) uses from a chat,
 - an optional **native app** (Expo, SQLite on the device).
 
-There is no account, no login, no cloud and no public website. Everything stays on the computer. Requires Node.js 22 or newer.
+Shared local mode opens without login. Optional Supabase mode retains the original accounts and community features; the native app can use its own SQLite library. This local recovery does not change the public deployment at gamer-hoard.com. Requires Node.js 22 or newer.
 
 ## Quick start
 
@@ -98,7 +98,15 @@ npm run typecheck    # the Expo client
 
 ## Limits
 
-- One user, one computer: no accounts, sync or sharing. The old tracker's movies, custom lists, reviews and badges are gone.
+- Native MCP tools operate on the shared local game library. They do not claim access to a browser collection or a cloud account. Original lists, reviews, account/social screens, movies, badges, import parsers and Supabase source are recovered. Their historical game-metadata compatibility stubs remain as before; this does not add a new movie/person catalogue provider.
 - The web UI does not show Steam achievements (the MCP tools and `/api/games/<id>/achievements` do).
-- "Clear data" is not offered in the web UI; delete the library file instead.
+- In shared mode, Clear data clears browser collections while retaining shared games. The UI states this boundary and offers exports for both. Other original modes retain their own clear operation.
 - Online metadata (covers, DLC lists, trailers) needs `RAWG_API_KEY`.
+
+## Recovered data sources
+
+Settings lets the web user choose the shared Faustus library, the historical browser library, or the cloud account. `EXPO_PUBLIC_BACKEND=localapi` remains the web default; `memory` and historical `local` use MemorySource on web, `local` uses SQLite on native, and `supabase` selects SupabaseSource on either platform. Cloud mode reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` from configuration and uses the original login flow. Shared/browser modes neither require login nor refresh a cloud session. The cloud landing page provides a way back to the shared library.
+
+Shared games and sessions still use the native REST/MCP library. Lists, movies and other historical browser collections reuse MemorySource and its existing localStorage keys, including persisted changes after reopening. A game can be added to a restored custom list from its detail page. Cloud social/account functions use the recovered Supabase client/schema; browser collections are not advertised as published or synced. The original Steam account flow remains available in cloud mode alongside the current manual/profile import. Native unsupported episode-counter writes report their domain limitation instead of silently reporting success.
+
+`packages/` and `supabase/` are recovered historical source; no migrations, deployment, provider accounts or real credentials are run by this restoration. iOS/Android runtime and real cloud connectivity need their configured environment; typechecking and deterministic client contract fixtures are separate from such live validation.

@@ -1,4 +1,6 @@
-// Local (on-device) SQLite schema used by the native app (see ./index.ts).
+// Local (on-device) SQLite schema — a pragmatic mirror of the Postgres schema in
+// supabase/migrations. Same names/shape so the Supabase DataSource drops in later
+// (see ./index.ts) with no screen changes.
 export const SCHEMA = `
 create table if not exists profile (
   id integer primary key check (id = 1),
