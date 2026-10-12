@@ -5,6 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
+import http from 'node:http';
 import {selectBackend} from './lib/backendMode.ts';
 import {buildContext} from './copilotContext.ts';
 
@@ -156,4 +157,44 @@ test('restored Supabase adapter reads and writes the selected profile without ch
   const id=await data.createList('Cloud list');
   assert.equal(id,1);
   assert.equal(tables.app_lists[0].profile_id,'private-user');
+});
+
+test('historical Steam account and manual paths use their real contract and the original data adapter',async()=>{
+  const storage=globalThis.localStorage,oldFetch=globalThis.fetch;
+  globalThis.localStorage=browserStorage();
+  let cancel=false,minutes=120,startUrl='',manual=false;
+  const server=http.createServer((request,response)=>{
+    let body='';request.on('data',part=>body+=part);
+    request.on('end',()=>{
+      assert.ok(request.url.startsWith('/functions/v1/steam-auth'));
+      if(request.method==='POST'){assert.equal(JSON.parse(body).mode,'manual');manual=true;}
+      response.setHeader('Content-Type','application/json');
+      response.end(JSON.stringify({steamid:'private-steam-id',games:[{appid:17,name:'Fixture Steam game',playtime_forever:minutes,rtime_last_played:Math.floor(Date.now()/1000)}]}));
+    });
+  });
+  server.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));
+  const base='http://127.0.0.1:'+server.address().port;
+  globalThis.fetch=(url,...args)=>{assert.equal(new URL(String(url)).origin,base);return oldFetch(url,...args)};
+  try {
+    const {MemorySource}=modules()('db/memory.ts');const data=new MemorySource();await data.ready();
+    const keys=new Map();
+    const steam=modules({
+      './db':{data},'./lib/backend':{isCloud:true},
+      '@react-native-async-storage/async-storage':{__esModule:true,default:{getItem:async key=>keys.get(key)??null,setItem:async(key,value)=>keys.set(key,value)}},
+      'expo-constants':{__esModule:true,default:{expoConfig:{extra:{supabaseUrl:base}}}},
+      'expo-linking':{createURL:()=>base+'/steam-return'},
+      'expo-web-browser':{maybeCompleteAuthSession:()=>{},openAuthSessionAsync:async url=>{startUrl=url;return cancel?{type:'cancel'}:{type:'success',url:base+'/steam-return#sid=private-steam-id&exp=9999999999&sig=fixture-signature'}}},
+    })('steamCloud.ts');
+    const imported=await steam.importSteamLibrary();assert.equal(imported.imported,1);assert.equal(imported.hours,2);
+    assert.ok(startUrl.includes('/functions/v1/steam-auth?app='));
+    assert.equal((await data.getShowById(2_000_000_017)).playtime_minutes,120);
+    minutes=180;await steam.importSteamManual('fixture-profile','fixture-key');
+    assert.ok(manual);assert.equal((await data.getShowById(2_000_000_017)).playtime_minutes,180);
+    assert.equal((await data.getShows()).length,1,'a repeated import updates the existing game');
+    cancel=true;await assert.rejects(steam.importSteamLibrary(),/CANCELLED/);
+    assert.equal((await data.getShows()).length,1);
+  } finally {
+    globalThis.fetch=oldFetch;globalThis.localStorage=storage;
+    server.closeAllConnections();await new Promise(resolve=>server.close(resolve));
+  }
 });
