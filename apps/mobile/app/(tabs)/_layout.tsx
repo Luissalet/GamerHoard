@@ -29,8 +29,6 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" options={{ title: t('tabs.games'), tabBarIcon: ({ color, size }) => <Ionicons name="game-controller-outline" size={size} color={color} /> }} />
       <Tabs.Screen name="explore" options={{ title: t('tabs.explore'), tabBarIcon: ({ color, size }) => <Ionicons name="search-outline" size={size} color={color} /> }} />
       <Tabs.Screen name="profile" options={{ title: t('tabs.profile'), tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} /> }} />
-      {/* Legacy movies route from the Watch Hoard base, hidden in GamerHoard (games only). */}
-      <Tabs.Screen name="movies" options={{ href: null }} />
     </Tabs>
   );
 }

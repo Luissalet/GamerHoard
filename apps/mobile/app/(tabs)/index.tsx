@@ -7,7 +7,6 @@ import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, space, font, radius } from '../../src/theme';
-import { NotificationBell } from '../../src/NotificationBell';
 import { DragScrollView } from '../../src/DragScrollView';
 import { useQuery } from '../../src/useData';
 import { data, type ShowRow } from '../../src/db';
@@ -198,7 +197,6 @@ export default function GamesScreen() {
             <Ionicons name="dice-outline" size={22} color={colors.text} />
           </Pressable>
         )}
-        <NotificationBell />
       </View>
 
       {tab === 'home' ? (

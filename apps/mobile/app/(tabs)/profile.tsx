@@ -6,14 +6,10 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { colors, space, font, radius } from '../../src/theme';
-import { NotificationBell } from '../../src/NotificationBell';
 import { SectionHeader, StatCard } from '../../src/components';
 import { DragScrollView } from '../../src/DragScrollView';
 import { useQuery } from '../../src/useData';
 import { posterFor } from '../../src/img';
-import { isCloud } from '../../src/lib/backend';
-import { useSession } from '../../src/auth/session';
-import { getFollowCounts } from '../../src/social';
 import { categoryOf } from '../../src/categories';
 import type { ShowRow } from '../../src/db';
 
@@ -32,12 +28,8 @@ function Thumb({ uri, title, onPress, width = 150 }: { uri: string; title: strin
 export default function ProfileScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { account } = useSession();
-  const [fc, setFc] = React.useState<{ followers: number; following: number } | null>(null);
-  React.useEffect(() => { if (isCloud && account) getFollowCounts(account.id).then(setFc); }, [account?.id]);
-
   const { loading, data: d } = useQuery(async (src) => ({
-    shows: await src.getShows(), recent: await src.getRecent(12), lists: await src.getLists(), favs: await src.getFavorites(20),
+    shows: await src.getShows(), recent: await src.getRecent(12), favs: await src.getFavorites(20),
   }), []);
   if (loading || !d) return <SafeAreaView style={s.center}><ActivityIndicator color={colors.accent} /></SafeAreaView>;
 
@@ -47,25 +39,21 @@ export default function ProfileScreen() {
   const favs = d.favs ?? [];
   const stats = {
     total: games.length, playing: playing.length, completed: by('finished'), backlog: by('not_started'),
-    paused: by('paused'), favorites: games.filter((g) => g.is_favorite).length,
+    paused: by('paused'), dropped: by('dropped'), favorites: games.filter((g) => g.is_favorite).length,
     dlcs: games.reduce((n, g) => n + (g.watched_episodes || 0), 0),
     hours: Math.round(games.reduce((n, g) => n + (g.playtime_minutes || 0), 0) / 60),
   };
-  const displayName = (isCloud && account ? (account.display_name?.trim() || account.handle) : null) ?? t('profile.you');
-  const avatarUri = isCloud ? account?.avatar_url ?? null : null;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
       <ScrollView contentContainerStyle={{ paddingBottom: space(10) }}>
         <View style={s.headerRow}>
           <View style={s.avatar}>
-            {avatarUri ? <Image source={{ uri: avatarUri }} style={{ width: 64, height: 64, borderRadius: 32 }} contentFit="cover" /> : <Ionicons name="game-controller" size={28} color={colors.textMuted} />}
+            <Ionicons name="game-controller" size={28} color={colors.textMuted} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={font.h1}>{displayName}</Text>
-            {isCloud && account?.handle ? <Text style={font.muted}>@{account.handle}</Text> : null}
+            <Text style={font.h1}>{t('profile.you')}</Text>
           </View>
-          <NotificationBell size={20} style={s.iconBtn} />
           <Pressable onPress={() => router.push('/settings')} hitSlop={10} style={s.iconBtn}><Ionicons name="settings-outline" size={20} color={colors.text} /></Pressable>
         </View>
 
@@ -102,6 +90,9 @@ export default function ProfileScreen() {
         <View style={[s.statGrid, { marginTop: space(3) }]}>
           <StatCard icon="pause-outline" label={t('profile.paused')}><Text style={font.display}>{stats.paused}</Text></StatCard>
           <StatCard icon="cube-outline" label={t('profile.dlcsOwned')}><Text style={font.display}>{stats.dlcs}</Text></StatCard>
+        </View>
+        <View style={[s.statGrid, { marginTop: space(3) }]}>
+          <StatCard icon="close-circle-outline" label={t('categories.dropped')}><Text style={font.display}>{stats.dropped}</Text></StatCard>
         </View>
 
         {(d.recent?.length ?? 0) > 0 && (
@@ -140,19 +131,6 @@ export default function ProfileScreen() {
           </>
         )}
 
-        {(d.lists?.length ?? 0) > 0 && (
-          <>
-            <SectionHeader title={t('profile.listsTitle')} />
-            <DragScrollView contentContainerStyle={{ gap: space(3), paddingHorizontal: space(4) }}>
-              {(d.lists ?? []).map((l) => (
-                <Pressable key={l.id} style={s.listCard} onPress={() => router.push(`/list/${l.id}`)}>
-                  <Text style={font.h2} numberOfLines={2}>{l.name?.trim() || t('profile.untitledList')}</Text>
-                  <Text style={font.muted}>{t(l.item_count === 1 ? 'profile.items_one' : 'profile.items_other', { n: l.item_count })}{l.is_public ? t('profile.publicSuffix') : ''}</Text>
-                </Pressable>
-              ))}
-            </DragScrollView>
-          </>
-        )}
       </ScrollView>
     </SafeAreaView>
   );

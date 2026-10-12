@@ -36,8 +36,8 @@ export interface AddShow { tvdb_id: number; title: string; poster: string | null
 export interface AddMovie { uuid: string; title: string; slug: string | null; year: number | null; poster: string | null; release_date: string | null; }
 export interface SteamGame { tvdb_id: number; title: string; poster: string | null; steam_appid: number; playtime_minutes: number; state: string; owned_platforms: string | null; }
 
-// Backend-agnostic contract. LocalSource (SQLite) and MemorySource (web) implement it now;
-// a SupabaseSource implements the same shape later — screens depend only on this interface.
+// Backend-agnostic contract. LocalSource (SQLite, native), LocalApiSource (web over the local server)
+// and MemorySource (browser demo) implement it — screens depend only on this interface.
 export interface DataSource {
   ready(): Promise<void>;
   clearData(): Promise<void>;

@@ -14,7 +14,6 @@ import { showDetails, movieDetails, seasonEpisodes, gameImg, type Details, type 
 import { isSteamId, steamStoreUrl } from '../../src/steam';
 import { Genres, Meta, WherePlay, PlatformOwnership, StudioRow, SagaRow, Trailer, AlsoPlayed, Screenshots, Scores, PosterPickerModal, RatingStars, NotesCard } from '../../src/detail';
 import { SessionsCard } from '../../src/SessionsCard';
-import { ShareButton } from '../../src/ShareButton';
 import { Fireworks } from '../../src/Fireworks';
 import { progress, categoryOf, type GameState } from '../../src/categories';
 
@@ -292,7 +291,6 @@ export default function GameDetail() {
       <PosterPickerModal visible={pickerOpen} tmdbId={det?.tmdbId} current={game.poster} onClose={() => setPickerOpen(false)} onPick={pickCover} />
       {celebrate && <Fireworks label={celebrate} onDone={() => setCelebrate(null)} />}
       <Pressable onPress={goBack} style={[s.back, { top: insets.top + space(2) }]} hitSlop={10}><Ionicons name="chevron-down" size={26} color={colors.text} /></Pressable>
-      <ShareButton title={game.title} path={`/show/${game.tvdb_id}`} top={insets.top + space(2)} />
     </View>
   );
 }
