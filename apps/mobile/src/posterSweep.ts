@@ -16,7 +16,8 @@ async function gatherJobs() {
   const seen = new Set<string>();
   const mv: MovieRow[] = [...movies, ...upcoming].filter((m) => { if (!m.uuid || seen.has(m.uuid)) return false; seen.add(m.uuid); return true; });
   return {
-    shows: shows.filter((s) => !s.poster || s.genres == null || s.tmdb_status == null || s.total_episodes == null),
+    // Ids from 1e9 up are synthetic (Steam imports and manual games): they have no RAWG record to resolve.
+    shows: shows.filter((s) => s.tvdb_id < 1_000_000_000 && (!s.poster || s.genres == null || s.tmdb_status == null || s.total_episodes == null)),
     movies: mv.filter((m) => !m.poster || m.genres == null),
   };
 }

@@ -8,8 +8,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { colors } from '../src/theme';
 import '../src/i18n';                       // initialise i18next
 import { loadStoredLanguage } from '../src/i18n';
+import { installCopilot } from '../src/copilot';
 
 const qc = new QueryClient();
+
+// Faustus copilot hook (web): window.hoardCopilot, read by the launcher the local server injects.
+installCopilot();
 
 // Restore the saved language before rendering the UI so there's no English→Spanish flash.
 function LanguageGate({ children }: { children: React.ReactNode }) {

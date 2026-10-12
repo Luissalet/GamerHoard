@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { colors, space, font, radius } from './theme';
+import { useCopilotView } from './copilotRegistry';
 import { gameImg, collectionParts, posterOptions, type Details, type StoreLink, type PlatformRef, type NameRef, type RecItem, type PosterOption, type CollectionPart } from './rawg';
 
 // ---------- meta line: year · playtime · #platforms · ESRB ----------
@@ -236,6 +237,7 @@ export function NotesCard({ value, onSave }: { value: string | null; onSave: (v:
   const [text, setText] = useState(value ?? '');
   const [dirty, setDirty] = useState(false);
   useEffect(() => { setText(value ?? ''); setDirty(false); }, [value]);
+  useCopilotView('notes', dirty ? { editor: { kind: 'game', fields: { notes: text } } } : null, [dirty, text]);
   return (
     <View style={{ paddingHorizontal: space(4), marginTop: space(5) }}>
       <Text style={[font.h2, { marginBottom: space(2) }]}>{t('notes.title')}</Text>

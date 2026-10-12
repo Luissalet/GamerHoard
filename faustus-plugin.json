@@ -3,14 +3,96 @@
   "id": "gamerhoard",
   "name": "GamerHoard",
   "purpose": "Biblioteca local de videojuegos: sesiones y tiempo jugado, catálogo RAWG opcional, seguimiento, DLC, estadísticas e importación de Steam.",
-  "capabilities": ["games", "library", "backlog", "ratings", "notes", "dlc", "stats", "play-sessions", "playtime-history", "activity-recap", "steam-import", "steam-achievements", "json-import-export"],
-  "placeholders": ["GAMERHOARD_DIR"],
+  "capabilities": [
+    "games",
+    "library",
+    "backlog",
+    "ratings",
+    "notes",
+    "dlc",
+    "stats",
+    "play-sessions",
+    "playtime-history",
+    "activity-recap",
+    "steam-import",
+    "steam-achievements",
+    "json-import-export",
+    "web-app",
+    "copilot"
+  ],
+  "placeholders": [
+    "GAMERHOARD_DIR",
+    "APP_URL"
+  ],
+  "defaults": {
+    "APP_URL": "http://127.0.0.1:5207"
+  },
+  "app": {
+    "url_default": "http://127.0.0.1:5207",
+    "ui_url": "{APP_URL}",
+    "health": {
+      "path": "/api/health",
+      "expect": {
+        "service": "gamerhoard"
+      }
+    },
+    "identify": {
+      "service": [
+        "gamerhoard"
+      ],
+      "title": [
+        "gamerhoard"
+      ]
+    },
+    "launch_hint": {
+      "kind": "process",
+      "executable": "node",
+      "argv": [
+        "server/index.mjs"
+      ],
+      "cwd": "{GAMERHOARD_DIR}",
+      "env": {
+        "GAMERHOARD_PORT": "5207"
+      },
+      "readiness": {
+        "url": "{APP_URL}/api/health",
+        "timeout_s": 30
+      }
+    }
+  },
   "mcp": {
     "transport": "stdio",
     "command": "node",
-    "args": ["{GAMERHOARD_DIR}/mcp/server.mjs"],
+    "args": [
+      "{GAMERHOARD_DIR}/mcp/server.mjs"
+    ],
     "env": {},
-    "optional_env": ["RAWG_API_KEY", "GAMERHOARD_DATA_FILE"]
+    "optional_env": [
+      "RAWG_API_KEY",
+      "GAMERHOARD_DATA_FILE"
+    ]
   },
-  "notes": "No web app or background service. The MCP server reads and writes one local JSON file in ~/.gamerhoard/library.json by default. RAWG_API_KEY only enables online catalog search; Steam import and achievement sync accept a key per call and never save it."
+  "x-family": {
+    "copilot": {
+      "provider": "faustus",
+      "contract": "1.0",
+      "panel": "/api/copilot/panel.js",
+      "context": [
+        "view.page",
+        "view.tab",
+        "view.filter",
+        "view.genre",
+        "view.favorites_only",
+        "view.sort",
+        "view.total_games",
+        "view.summary",
+        "view.editor",
+        "active_objects.game"
+      ]
+    }
+  },
+  "x-requires": {
+    "node": ">=22.13"
+  },
+  "notes": "Local web app plus MCP tools over ONE library file (~/.gamerhoard/library.json, or GAMERHOARD_DATA_FILE). Run npm run setup once, npm run build:web once, then npm run server (or GamerHoard.bat, or let Faustus launch it): the app answers on http://127.0.0.1:5207 and the MCP server (stdio) shares the same file; each process re-reads it when the other writes. RAWG_API_KEY enables online catalogue search and the cover/metadata lookups of the web UI (the key stays on the server); Steam import and achievement sync take the key per call and never save it. Only local requests are accepted (GAMERHOARD_ALLOWED_HOSTS adds host names). The Faustus copilot button is injected into every page; set HOARD_COPILOT=0 to turn it off. Mutating tools: gamer_add, gamer_add_from_catalog, gamer_update, gamer_dlc, gamer_log_session, gamer_remove (needs confirm), gamer_import_json, gamer_import_steam and gamer_sync_steam_achievements."
 }

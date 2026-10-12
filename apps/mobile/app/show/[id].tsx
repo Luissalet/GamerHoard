@@ -14,6 +14,7 @@ import { showDetails, movieDetails, seasonEpisodes, gameImg, type Details, type 
 import { isSteamId, steamStoreUrl } from '../../src/steam';
 import { Genres, Meta, WherePlay, PlatformOwnership, StudioRow, SagaRow, Trailer, AlsoPlayed, Screenshots, Scores, PosterPickerModal, RatingStars, NotesCard } from '../../src/detail';
 import { SessionsCard } from '../../src/SessionsCard';
+import { useCopilotView } from '../../src/copilotRegistry';
 import { Fireworks } from '../../src/Fireworks';
 import { progress, categoryOf, type GameState } from '../../src/categories';
 
@@ -50,15 +51,16 @@ export default function GameDetail() {
   const [celebrate, setCelebrate] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [detNonce, setDetNonce] = useState(0);
+  useCopilotView('game', { view: { tab } }, [tab]);
 
   useEffect(() => { if (initial) { setGame(initial); setInLibrary(true); setFavorite(!!initial.is_favorite); setOwned(parseOwned(initial.owned_platforms)); } }, [initial]);
 
   useEffect(() => {
     let alive = true;
     setDetLoading(true);
-    // Steam-imported games use a synthetic id (no RAWG record), so resolve their metadata
-    // by title. Native RAWG games load directly by id.
-    const steam = isSteamId(gameId) || !!initial?.steam_appid;
+    // Steam-imported and manually added games use a synthetic id (no RAWG record), so resolve
+    // their metadata by title. Native RAWG games load directly by id.
+    const steam = gameId >= 1_000_000_000 || isSteamId(gameId) || !!initial?.steam_appid;
     const load = steam ? (initial?.title ? movieDetails(initial.title) : Promise.resolve(null)) : showDetails(gameId);
     load.then((d) => {
       if (!alive) return;

@@ -76,7 +76,7 @@ export function createApp({ libraryPath, dataDir, distDir, port = null, allowedH
   const api = express.Router();
 
   api.get('/health', route(async (req, res) => {
-    res.json({ ok: true, app: 'gamerhoard', version: VERSION, games: (await library.games()).length, dataFile: libraryPath, rawg: Boolean(rawgKey()) });
+    res.json({ ok: true, service: 'gamerhoard', app: 'gamerhoard', version: VERSION, games: (await library.games()).length, dataFile: libraryPath, rawg: Boolean(rawgKey()) });
   }));
   api.get('/config', route(async (req, res) => {
     res.json({ backend: 'localapi', version: VERSION, dataFile: libraryPath, rawg: Boolean(rawgKey()), steam: 'per-call-key' });

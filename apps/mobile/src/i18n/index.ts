@@ -1,4 +1,4 @@
-// i18next setup for Watch Hoard. Default language is English; the user's choice is
+// i18next setup for GamerHoard. Default language is English; the user's choice is
 // persisted in AsyncStorage and restored on startup (see loadStoredLanguage + the
 // LanguageGate in app/_layout.tsx).
 // Hermes (Android) no trae Intl.PluralRules: sin este polyfill, las claves

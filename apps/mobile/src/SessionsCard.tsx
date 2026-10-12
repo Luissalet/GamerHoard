@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { colors, space, font, radius } from './theme';
 import { data, type GameSession } from './db';
 import { localDay } from './dates';
+import { useCopilotView } from './copilotRegistry';
 
 /** Play-session log for a game in the library (shared with the MCP library: minutes and notes per session). */
 export function SessionsCard({ gameId, onLogged }: { gameId: number; onLogged?: () => void }) {
@@ -13,6 +14,7 @@ export function SessionsCard({ gameId, onLogged }: { gameId: number; onLogged?: 
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState(false);
   const supported = !!data.logSession && !!data.getSessions;
+  useCopilotView('session', { editor: { kind: 'game', fields: { session_minutes: minutes, session_notes: notes } } }, [minutes, notes]);
 
   const load = useCallback(async () => {
     if (!data.getSessions) return;

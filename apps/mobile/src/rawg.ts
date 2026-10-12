@@ -142,6 +142,9 @@ async function fetchWithRetry(path: string): Promise<any | null> {
 
 async function get(path: string): Promise<any | null> {
   if (!KEY && !LOCAL) return null;
+  // Ids from 1e9 up are synthetic (Steam imports, manual games): RAWG has no record, so skip the request.
+  const gid = /^\/games\/(\d+)/.exec(path);
+  if (gid && Number(gid[1]) >= 1_000_000_000) return null;
   if (memCache.has(path)) return memCache.get(path);
   const running = inflight.get(path);
   if (running) return running;

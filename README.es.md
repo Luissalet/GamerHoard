@@ -2,37 +2,101 @@
 
 [English](README.md)
 
-Biblioteca **local** de videojuegos para usar desde Faustus mediante MCP stdio. No hay web, cuenta, dominio, Supabase ni servicio en segundo plano. Requiere Node.js 20 o posterior; no necesita `npm install`.
+Una **biblioteca local de videojuegos para un solo usuario**. Un único archivo JSON (`~/.gamerhoard/library.json`) lo comparten tres interfaces:
 
-## Conectar a Faustus
+- una **app web** servida en tu propio ordenador (`http://127.0.0.1:5207`),
+- las **herramientas MCP** que usa Faustus (o cualquier cliente MCP) desde un chat,
+- una **app nativa** opcional (Expo, SQLite en el dispositivo).
 
-Faustus puede cargar [`faustus-plugin.json`](./faustus-plugin.json) con `GAMERHOARD_DIR` apuntando a este repositorio. Para un cliente MCP manual, configura `command: node` y `args: ["C:/ruta/GamerHoard/mcp/server.mjs"]`. Ejecuta `npm start` para probarlo por stdio; el cliente MCP lo iniciará normalmente por sí mismo.
+No hay cuentas, ni inicio de sesión, ni nube, ni web pública. Todo se queda en el ordenador. Necesita Node.js 22 o superior.
 
-La biblioteca se guarda en `~/.gamerhoard/library.json` (`C:\\Users\\<usuario>\\.gamerhoard\\library.json` en Windows). Puedes cambiar la ubicación con `GAMERHOARD_DATA_FILE` en el entorno del proceso MCP. Este archivo es la **única fuente de verdad** y no está en el repositorio. Cópialo para hacer una copia de seguridad; usa `gamer_export_json` para una exportación estructurada. Las exportaciones crean archivos nuevos y nunca sobreescriben.
+## Puesta en marcha
 
-## Herramientas
+```sh
+npm run setup        # una vez: instala la dependencia del servidor (Express)
+npm install          # una vez: instala las herramientas del cliente web
+npm run build:web    # una vez, y tras cambiar el cliente: genera apps/mobile/dist
+npm run server       # arranca http://127.0.0.1:5207
+```
 
-- `gamer_list`, `gamer_get`: buscar y consultar la biblioteca, con filtros de estado, favorito y plataforma.
-- `gamer_add`, `gamer_update`: añadir manualmente y registrar estado, valoración 1–10, notas, favorito, plataformas propias, etiquetas, horas y progreso.
-- `gamer_dlc`: registrar expansiones y completarlas.
-- `gamer_log_session`, `gamer_sessions`: guardar sesiones locales por juego y consultar su historial. `sessionId` debe ser estable: repetirlo mediante `gamer_log_session` actualiza esa sesión en vez de sumar otra; corregir minutos aplica solo la diferencia al total. `playedAt` requiere ISO 8601 con zona horaria. En `gamer_sessions`, `id` es opcional para consultar toda la biblioteca; `from`/`to` aceptan `YYYY-MM-DD` como día UTC completo o ISO 8601 con zona horaria, con extremos inclusivos. `limit` limita las filas devueltas, mientras `total` y `minutes` cubren todas las sesiones filtradas.
-- `gamer_stats`, `gamer_backlog`: resumen y sugerencias deterministas de tus pendientes.
-- `gamer_search_catalog`, `gamer_add_from_catalog`: metadatos opcionales de RAWG. Configura `RAWG_API_KEY` en el entorno de Faustus para habilitarlos. La biblioteca funciona sin clave ni conexión.
-- `gamer_import_steam`: recibe un SteamID64 y una Steam Web API key **en esa llamada**; consulta la biblioteca pública y añade juegos y minutos jugados. Con `syncExistingPlaytime: true` actualiza el tiempo de los juegos ya vinculados a Steam, teniendo en cuenta las sesiones registradas sin contarlas dos veces. Conserva notas, estado y progreso; los juegos coincidentes solo por título quedan intactos. Sin esa opción conserva los juegos existentes. La clave no se guarda en el JSON ni se escribe en logs. Steam requiere Internet y que sus ajustes de privacidad permitan consultar la biblioteca.
-- `gamer_sync_steam_achievements`: actualiza los logros individuales, el total desbloqueado y la fecha de consulta de un juego mediante la API pública de Steam. Recibe SteamID64 y clave solo en esa llamada; no los guarda. Si no se puede consultar el esquema, conserva los nombres técnicos de los logros. Si Steam no ofrece logros del jugador, conserva la última copia local. Estos logros no modifican el progreso introducido a mano.
-- `gamer_achievements`: consulta nombres, descripciones y fechas de desbloqueo guardados, con filtros de texto/desbloqueo y paginación. `gamer_get` y `gamer_list` muestran solo el resumen compacto.
-- `gamer_import_json`, `gamer_export_json`: importación aditiva y exportación. Acepta exportaciones de GamerHoard y el formato `watchhoard-export` de la antigua app; las entradas ya presentes se omiten.
+En Windows, `GamerHoard.bat` hace lo mismo y abre el navegador. Opcional: define `RAWG_API_KEY` (gratis en rawg.io/apidocs) antes de arrancar para activar el catálogo online (búsqueda, portadas, lista de DLC, «dónde jugar»). Sin ella la app funciona igual con tu biblioteca, notas, sesiones e importación de Steam.
 
-Estados: `backlog`, `playing`, `paused`, `completed`, `dropped`. Las sesiones se guardan en el JSON local y se incluyen en importación/exportación. El tiempo previo o importado se conserva como base y se suma al total de sesiones; las copias antiguas sin sesiones siguen siendo válidas. La importación de sesiones es aditiva: añade IDs ausentes y conserva los que ya existen, aunque la copia importada tenga una duración anterior. Para corregir una sesión existente, usa `gamer_log_session`. Una exportación que repite `sessionId` dentro del mismo juego se rechaza antes de modificar la biblioteca. Las operaciones no destructivas conservan los datos existentes. El código anterior de Expo y Supabase permanece recuperable en el historial Git, pero no forma parte del producto activo. No se toca el proyecto remoto ni los `.env` ignorados.
+La app web y el servidor MCP leen y escriben el mismo archivo y se enteran de los cambios del otro: un juego que marcas como completado en el navegador queda completado para Faustus, y una sesión que registra Faustus aparece en el navegador al refrescar.
 
-## Usarlo desde el chat
+## Qué hace la app web
 
-`gamer_activity` crea un resumen local entre fechas inclusivas: minutos y sesiones por juego, ranking y días UTC. Solo cuenta sesiones fechadas; las horas históricas importadas no tienen fecha y quedan fuera. `limit` (1–100, 10 por defecto) recorta el ranking, pero los totales y días incluyen todo el período. Corregir una sesión se refleja en el siguiente resumen sin duplicarla. [Detalles y ejemplos](docs/ACTIVITY.md).
+- **Juegos**: inicio con «Jugando ahora», «A punto de acabar» y añadidos recientes; rejilla por estado (pendiente, jugando, pausado, completado, abandonado), búsqueda, orden (recientes, A-Z, horas), favoritos, filtro por género y el selector ponderado «¿a qué juego ahora?». Mantén pulsado un juego para las acciones rápidas.
+- **Ficha del juego**: estado de un toque, nota (1-10), notas personales, plataformas que tienes, lista de DLC (cuando RAWG los conoce), **sesiones de juego** (minutos y una nota por sesión), Metacritic y enlaces a tiendas, tráiler, capturas y juegos similares.
+- **Explora**: busca en RAWG, tendencias, novedades, populares y mejor valorados, por género y plataforma; añade directo al backlog.
+- **Stats y perfil**: totales, horas, completado, géneros, plataformas y estudios más frecuentes, juegos con más DLC.
+- **Historial**: sesiones registradas (con minutos) y DLC marcados.
+- **Importar de Steam**: perfil (nombre, URL o SteamID64) y tu Steam Web API key. La key se recuerda solo en el navegador; nunca va al archivo de la biblioteca.
+- **Ajustes**: idioma (español o inglés), instalar como app, exportar la biblioteca en JSON.
 
-Puedes decirle a Faustus: «Registra los 45 minutos que jugué ayer a Outer Wilds», «Corrige esa sesión: fueron 35 minutos» o «¿Cuánto he jugado esta semana y a qué juegos?». Faustus consulta la biblioteca y gestiona los identificadores de las sesiones; no necesitas escribirlos.
+## Conectar con Faustus
+
+Faustus carga [`faustus-plugin.json`](faustus-plugin.json) con `GAMERHOARD_DIR` apuntando a este repositorio. Declara el servidor MCP stdio (`mcp/server.mjs`), la app web (puerto 5207, salud en `/api/health`, se lanza con `node server/index.mjs`) y el copiloto. Para un cliente MCP manual usa `command: node` y `args: ["C:/ruta/GamerHoard/mcp/server.mjs"]`.
+
+### Copiloto de Faustus
+
+Todas las páginas que sirve el servidor llevan el botón de Faustus (abajo a la derecha). Abre el chat de Faustus en un panel lateral y, con cada mensaje, le envía el contexto de lo que estás viendo (`window.hoardCopilot.context`):
+
+| Vista | Qué recibe Faustus |
+|-------|--------------------|
+| Ficha de juego (`/show/<id>`) | el juego abierto como `active_objects`: id de la biblioteca, título, estado, plataformas, nota, horas, favorito, DLC hechos/total, estudio, géneros; los campos sin guardar en `view.editor` (notas que has escrito, minutos de una sesión aún sin registrar) |
+| Biblioteca (`/`) | los juegos listados en pantalla (hasta 8, en el orden mostrado) y en `view` la pestaña, el filtro de estado, el género, solo favoritos y el orden; el texto de búsqueda en `view.editor` |
+| Stats y perfil | un resumen en `view.summary` (juegos por estado, horas, favoritos, más jugados) |
+| Explora | el texto de búsqueda en `view.editor` |
+| Importar de Steam | el perfil que has escrito (nunca la API key) |
+| Cualquier otra, o un juego que no está en la biblioteca | `active_objects: []` |
+
+Tras cada turno de Faustus se refrescan una vez las listas abiertas sin perder lo que estás escribiendo. Define `HOARD_COPILOT=0` antes de arrancar el servidor para quitar el botón. Las rutas están en [docs/API.md](docs/API.md).
+
+## Herramientas MCP
+
+- `gamer_list`, `gamer_get`: buscar e inspeccionar juegos, con filtros de estado, favorito y plataforma y paginación (`offset`).
+- `gamer_add`, `gamer_update`: añadir juegos y actualizar estado, nota de 1 a 10, notas, favoritos, plataformas, etiquetas, horas, progreso, portada, estudio y total de DLC.
+- `gamer_remove`: borra un juego de la biblioteca. Exige `confirm: true`.
+- `gamer_dlc`: registra expansiones y las marca como completadas (un `number` opcional guarda la posición del catálogo para que la lista web coincida).
+- `gamer_log_session`, `gamer_sessions`: registran sesiones locales y consultan el historial. Un `sessionId` estable hace que repetir actualice la misma sesión en vez de sumar tiempo dos veces. Corregir los minutos cambia el total por la diferencia. `playedAt` exige ISO 8601 con zona horaria. Los filtros aceptan fechas UTC o marcas ISO con extremos inclusivos; `limit` afecta a las filas devueltas, mientras `total` y `minutes` cubren todas las sesiones que encajan.
+- `gamer_stats`, `gamer_backlog`: resúmenes y sugerencias deterministas del backlog.
+- `gamer_activity`: resumen de actividad de un rango de fechas inclusivo, ordenado por minutos y agrupado por día UTC. Solo cuentan las sesiones con fecha. Ver [Resúmenes de actividad](docs/ACTIVITY.md).
+- `gamer_search_catalog`, `gamer_add_from_catalog`: metadatos opcionales de RAWG (necesitan `RAWG_API_KEY` en el proceso MCP).
+- `gamer_import_steam`: pasa un SteamID64 y la Web API key **en la llamada** para importar una biblioteca pública y las horas. `syncExistingPlaytime: true` refresca las horas de juegos ya enlazados sin contar dos veces las sesiones registradas. La key no se guarda en el JSON ni en logs.
+- `gamer_sync_steam_achievements`, `gamer_achievements`: refrescan y consultan los logros de un juego de Steam.
+- `gamer_import_json`, `gamer_export_json`: importación aditiva y exportación. Se aceptan las exportaciones de GamerHoard y el formato antiguo `watchhoard-export`; lo que ya existe se omite. Las exportaciones crean archivos nuevos y nunca sobrescriben.
+
+Los estados son `backlog`, `playing`, `paused`, `completed` y `dropped`. La app web los muestra como Pendiente, Jugando, Pausado, Completado y Abandonado.
+
+## Configuración
+
+| Variable | Por defecto | Significado |
+|----------|-------------|-------------|
+| `GAMERHOARD_PORT` | `5207` | puerto de la app web |
+| `GAMERHOARD_DATA_FILE` | `~/.gamerhoard/library.json` | archivo de la biblioteca (lo comparten servidor y MCP; defínela en ambos) |
+| `GAMERHOARD_DATA_DIR` | carpeta de la biblioteca | donde el copiloto guarda su pequeño estado |
+| `GAMERHOARD_DIST` | `apps/mobile/dist` | cliente web compilado |
+| `GAMERHOARD_ALLOWED_HOSTS` | solo nombres locales | nombres de host extra aceptados |
+| `RAWG_API_KEY` | ninguna | activa el catálogo online; se queda en el servidor |
+| `HOARD_FAUSTUS_URL` | `http://127.0.0.1:7000` | dónde llega el copiloto a Faustus |
+| `HOARD_COPILOT` | activo | `0` quita el botón de Faustus |
+
+El archivo de la biblioteca es la única fuente de verdad y no forma parte del repositorio: cópialo para una copia de seguridad, o usa Ajustes > Exportar datos o `gamer_export_json`.
+
+## App nativa
+
+`apps/mobile` es un proyecto Expo. La compilación nativa mantiene su propia base SQLite en el dispositivo (no lee el archivo de la biblioteca del ordenador) y llama a RAWG directamente con `EXPO_PUBLIC_RAWG_KEY` de `apps/mobile/.env`. Copia antes `apps/mobile/.env.example`. La app web es la que comparte datos con Faustus.
 
 ## Verificar
 
-```powershell
-npm test
+```sh
+npm test             # biblioteca MCP, servidor REST, contexto del copiloto, manifiesto
+npm run typecheck    # el cliente Expo
 ```
+
+## Límites
+
+- Un usuario, un ordenador: sin cuentas, sincronización ni compartir. Las películas, listas, reseñas e insignias del antiguo tracker ya no existen.
+- La web no muestra los logros de Steam (las herramientas MCP y `/api/games/<id>/achievements` sí).
+- «Borrar datos» no se ofrece en la web; borra el archivo de la biblioteca.
+- Los metadatos online (portadas, lista de DLC, tráilers) necesitan `RAWG_API_KEY`.

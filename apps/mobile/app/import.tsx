@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, space, font, radius } from '../src/theme';
+import { useCopilotView } from '../src/copilotRegistry';
 import { importSteam, getSteamKey, getSteamProfile, type SteamImportResult } from '../src/steam';
 
 // Steam library import: profile (vanity name, URL or SteamID64) + Steam Web API key.
@@ -17,6 +18,8 @@ export default function SteamImportScreen() {
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState('');
   const [key, setKey] = useState('');
+  // Only the profile is shared with the copilot, never the API key.
+  useCopilotView('import', { editor: { kind: 'steam_import', fields: { profile } } }, [profile]);
 
   useEffect(() => {
     getSteamKey().then((k) => { if (k) setKey(k); });

@@ -12,7 +12,7 @@ import { posterFor } from '../src/img';
 import type { RecentRow } from '../src/db';
 import { localHm, localDay } from '../src/dates';
 
-// Your watch history: imported TV Time events + everything you mark in Watch Hoard.
+// Play history: logged sessions and DLC marked as done, newest first.
 export default function HistoryScreen() {
   const router = useRouter();
   const { t } = useTranslation();

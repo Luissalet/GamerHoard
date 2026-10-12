@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { colors, space, font, radius } from '../../src/theme';
 import { DragScrollView } from '../../src/DragScrollView';
 import { data } from '../../src/db';
+import { useCopilotView } from '../../src/copilotRegistry';
 import { searchMulti, trending, newReleases, popularList, topRatedList, upcomingMovies, upcomingShows, detailsById, movieReleaseDate, tvdbForTmdb, tmdbImg, rawgAvailable, genreList, discoverByGenres, platformList, discoverByPlatform, type DiscoverItem, type PlatformDef } from '../../src/tmdb';
 import { SkeletonRow, SkeletonGrid } from '../../src/Skeleton';
 
@@ -72,6 +73,7 @@ export default function ExploreScreen() {
   const tvdbMap = useRef<Record<number, number>>({});
   const searchRef = useRef<TextInput>(null);
   const [rawgOk, setRawgOk] = useState<boolean | null>(null);
+  useCopilotView('explore', { editor: query.trim() ? { kind: 'search', fields: { query } } : undefined }, [query]);
   useEffect(() => { rawgAvailable().then(setRawgOk); }, []);
 
   // Web: "/" focuses the search box.

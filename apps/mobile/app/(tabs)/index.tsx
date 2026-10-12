@@ -11,6 +11,7 @@ import { DragScrollView } from '../../src/DragScrollView';
 import { useQuery } from '../../src/useData';
 import { data, type ShowRow } from '../../src/db';
 import { posterFor } from '../../src/img';
+import { useCopilotView } from '../../src/copilotRegistry';
 import { categoryOf, CATEGORIES, progress, type Category } from '../../src/categories';
 import { genreNameMap, parseGenres, libraryGenres, backfillShowGenres } from '../../src/genres';
 import { GameActionsModal } from '../../src/GameActionsModal';
@@ -164,6 +165,14 @@ export default function GamesScreen() {
     }
     return out;
   }, [all, filter, genreFilter, favOnly, q, sort, numColumns, i18n.language]);
+
+  useCopilotView('library', {
+    view: { tab, filter, genre: genreFilter === 'all' ? undefined : genreNames[genreFilter], favorites_only: favOnly || undefined, sort },
+    editor: q.trim() ? { kind: 'search', fields: { query: q } } : undefined,
+    visibleIds: tab === 'home'
+      ? [...new Set([...playing, ...recentlyAdded].map((g) => g.tvdb_id))]
+      : items.flatMap((i: any) => (i.kind === 'row' ? i.games.map((g: ShowRow) => g.tvdb_id) : [])),
+  }, [items, tab, filter, genreFilter, favOnly, sort, q, playing, recentlyAdded]);
 
   const openGame = (g: ShowRow) => router.push(`/show/${g.tvdb_id}`);
   const sortIcon: Record<SortMode, keyof typeof Ionicons.glyphMap> = { recent: 'time-outline', az: 'text-outline', hours: 'hourglass-outline' };
