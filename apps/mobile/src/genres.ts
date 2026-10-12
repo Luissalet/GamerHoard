@@ -2,10 +2,12 @@
 // `genres` column (comma-joined TMDB genre ids; '' = resolved but none/unknown).
 import { data, type ShowRow, type MovieRow } from './db';
 import { tvLite, movieLiteById, movieLiteByTitle, genreList, tmdbImg } from './tmdb';
+import { GENRES } from './db/localapiMap';
 
 export async function genreNameMap(lang: string): Promise<Record<number, string>> {
   const [tv, mv] = await Promise.all([genreList('tv', lang), genreList('movie', lang)]);
-  const m: Record<number, string> = {};
+  // RAWG's genre catalogue is fixed, so names resolve even without a key or a connection.
+  const m: Record<number, string> = { ...GENRES };
   for (const g of [...tv, ...mv]) m[g.id] = g.name;
   return m;
 }

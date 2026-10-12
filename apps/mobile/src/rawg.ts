@@ -13,12 +13,23 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { BACKEND } from './lib/backend';
 
 const extra = (Constants.expoConfig?.extra ?? {}) as any;
 
-const KEY = extra.rawgKey || process.env.EXPO_PUBLIC_RAWG_KEY;
-const BASE = 'https://api.rawg.io/api';
-export const rawgConfigured = !!KEY;
+// Local web app: every RAWG call goes through the local server (/api/rawg), which holds the key.
+// Native builds call RAWG directly with the key from the build config.
+const LOCAL = BACKEND === 'localapi';
+const KEY = LOCAL ? '' : (extra.rawgKey || process.env.EXPO_PUBLIC_RAWG_KEY);
+const BASE = LOCAL ? '/api/rawg' : 'https://api.rawg.io/api';
+export const rawgConfigured = LOCAL || !!KEY;
+let serverRawg: Promise<boolean> | null = null;
+/** Whether catalogue lookups can work: the server has a RAWG key (web) or the build has one (native). */
+export function rawgAvailable(): Promise<boolean> {
+  if (!LOCAL) return Promise.resolve(!!KEY);
+  if (!serverRawg) serverRawg = fetch('/api/config').then((r) => r.json()).then((c) => !!c?.rawg).catch(() => false);
+  return serverRawg;
+}
 /** @deprecated legacy name — use {@link rawgConfigured}. */
 export const tmdbConfigured = rawgConfigured;
 
@@ -130,7 +141,7 @@ async function fetchWithRetry(path: string): Promise<any | null> {
 }
 
 async function get(path: string): Promise<any | null> {
-  if (!KEY) return null;
+  if (!KEY && !LOCAL) return null;
   if (memCache.has(path)) return memCache.get(path);
   const running = inflight.get(path);
   if (running) return running;

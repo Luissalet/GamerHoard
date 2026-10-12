@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { homedir } from 'node:os';
 import { randomUUID } from 'node:crypto';
@@ -37,9 +37,14 @@ function filterDate(value, name, endOfDay = false) {
 function sessionTotal(game) { return (Array.isArray(game.sessions) ? game.sessions : []).reduce((sum, s) => sum + s.minutes, 0); }
 
 export class Library {
-  constructor(path = DATA_PATH) { this.path = path; this.db = null; }
+  constructor(path = DATA_PATH) { this.path = path; this.db = null; this.stamp = null; }
+  // The file can be changed by another process (MCP server, local web server): re-read it when it did.
+  async fileStamp() {
+    try { const s = await stat(this.path); return `${s.mtimeMs}:${s.size}`; } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
+  }
   async load() {
-    if (this.db) return this.db;
+    const stamp = await this.fileStamp();
+    if (this.db && stamp === this.stamp) return this.db;
     try {
       const parsed = JSON.parse(await readFile(this.path, 'utf8'));
       if (parsed.format !== FORMAT || parsed.version !== 1 || !Array.isArray(parsed.games)) throw new Error('formato no reconocido');
@@ -48,6 +53,7 @@ export class Library {
       if (error.code !== 'ENOENT') throw new Error(`No se puede abrir ${this.path}: ${error.message}`);
       this.db = blank();
     }
+    this.stamp = stamp;
     return this.db;
   }
   async save() {
@@ -55,6 +61,7 @@ export class Library {
     const temp = `${this.path}.${process.pid}.${randomUUID()}.tmp`;
     await writeFile(temp, JSON.stringify(this.db, null, 2) + '\n', { mode: 0o600 });
     await rename(temp, this.path);
+    this.stamp = await this.fileStamp();
   }
   async games() { return (await this.load()).games; }
   async find(id) {
@@ -62,14 +69,22 @@ export class Library {
     if (!game) throw new Error(`Juego no encontrado: ${id}`);
     return game;
   }
-  async list({ query = '', state, favorite, platform, limit = 100 } = {}) {
+  async remove(id) {
+    const game = await this.find(id);
+    const db = await this.load();
+    db.games.splice(db.games.indexOf(game), 1);
+    await this.save();
+    return { removed: true, gameId: game.id, title: game.title };
+  }
+  async list({ query = '', state, favorite, platform, limit = 100, offset = 0 } = {}) {
     if (state && !STATES.includes(state)) throw new Error('Estado no válido');
     const q = str(query).toLocaleLowerCase();
     const items = (await this.games()).filter(g =>
       (!q || [g.title, g.notes, ...g.genres, ...g.tags].some(v => v.toLocaleLowerCase().includes(q))) &&
       (!state || g.state === state) && (favorite === undefined || g.favorite === favorite) &&
       (!platform || g.ownedPlatforms.some(v => v.toLocaleLowerCase() === platform.toLocaleLowerCase())));
-    return { total: items.length, games: items.slice(0, Math.min(500, Math.max(1, Number(limit) || 100))) };
+    const start = Math.max(0, Math.floor(Number(offset) || 0));
+    return { total: items.length, games: items.slice(start, start + Math.min(500, Math.max(1, Number(limit) || 100))) };
   }
   async add(input) {
     const title = str(input.title);
@@ -84,7 +99,7 @@ export class Library {
     if (!STATES.includes(state)) throw new Error('Estado no válido');
     const date = now();
     const playtimeBaseMinutes = finite(input.playtimeBaseMinutes, 'playtimeBaseMinutes') ?? (finite(input.playtimeMinutes, 'playtimeMinutes') || 0);
-    const game = { id, title, state, favorite: false, rating: null, notes: '', ownedPlatforms: unique(input.ownedPlatforms), platforms: unique(input.platforms), genres: unique(input.genres), tags: [], dlcs: [], sessions: [], playtimeBaseMinutes, playtimeMinutes: playtimeBaseMinutes, progressPercent: 0, rawgId: rawgId || null, steamAppId: steamAppId || null, steamAchievements: null, released: str(input.released) || null, coverUrl: str(input.coverUrl) || null, description: str(input.description), addedAt: date, updatedAt: date };
+    const game = { id, title, state, favorite: false, rating: null, notes: '', ownedPlatforms: unique(input.ownedPlatforms), platforms: unique(input.platforms), genres: unique(input.genres), tags: [], dlcs: [], sessions: [], playtimeBaseMinutes, playtimeMinutes: playtimeBaseMinutes, progressPercent: 0, rawgId: rawgId || null, steamAppId: steamAppId || null, steamAchievements: null, released: str(input.released) || null, coverUrl: str(input.coverUrl) || null, description: str(input.description), studio: str(input.studio) || null, dlcTotal: finite(input.dlcTotal, 'dlcTotal') ?? null, addedAt: date, updatedAt: date };
     games.push(game); await this.save();
     return { game, added: true };
   }
@@ -104,6 +119,10 @@ export class Library {
       next.playtimeBaseMinutes = target - recorded;
       next.playtimeMinutes = target;
     }
+    if (patch.coverUrl !== undefined) next.coverUrl = str(patch.coverUrl) || null;
+    if (patch.studio !== undefined) next.studio = str(patch.studio) || null;
+    if (patch.released !== undefined) next.released = str(patch.released) || null;
+    if (patch.dlcTotal !== undefined) next.dlcTotal = patch.dlcTotal === null ? null : finite(patch.dlcTotal, 'dlcTotal');
     for (const field of ['ownedPlatforms', 'platforms', 'genres', 'tags']) if (patch[field] !== undefined) next[field] = unique(patch[field]);
     next.updatedAt = now();
     Object.assign(g, next); await this.save(); return g;
@@ -152,13 +171,14 @@ export class Library {
       available: Array.isArray(snapshot?.items), total: matches.length, offset: start,
       achievements: matches.slice(start, start + size) };
   }
-  async dlc(id, { title, completed, notes = '' }) {
+  async dlc(id, { title, completed, notes = '', number }) {
     const g = await this.find(id);
     title = str(title);
     if (!title || typeof completed !== 'boolean') throw new Error('Indica título y completed booleano');
     let item = g.dlcs.find(d => d.title.toLocaleLowerCase() === title.toLocaleLowerCase());
-    if (item) { item.completed = completed; item.notes = str(notes); }
-    else { item = { title, completed, notes: str(notes) }; g.dlcs.push(item); }
+    const position = Number.isInteger(number) && number > 0 ? number : undefined;
+    if (item) { item.completed = completed; item.notes = str(notes); if (position) item.number = position; }
+    else { item = { title, completed, notes: str(notes), ...(position ? { number: position } : {}) }; g.dlcs.push(item); }
     g.updatedAt = now(); await this.save(); return { gameId: g.id, dlc: item };
   }
   async logSession(id, { sessionId, minutes, playedAt, notes } = {}) {

@@ -5,58 +5,42 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, space, font, radius } from '../src/theme';
-import { importSteamLibrary, importSteamManual, getSteamKey } from '../src/steam';
+import { importSteam, getSteamKey, getSteamProfile, type SteamImportResult } from '../src/steam';
 
+// Steam library import: profile (vanity name, URL or SteamID64) + Steam Web API key.
+// The key stays on this device (never written to the library file shared with other tools).
 export default function SteamImportScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-  const [result, setResult] = useState<{ n: number; h: number } | null>(null);
+  const [result, setResult] = useState<SteamImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // Hidden manual (API key) fallback for private profiles.
-  const [showManual, setShowManual] = useState(false);
   const [profile, setProfile] = useState('');
   const [key, setKey] = useState('');
-  const [mBusy, setMBusy] = useState(false);
 
-  useEffect(() => { getSteamKey().then((k) => { if (k) setKey(k); }); }, []);
+  useEffect(() => {
+    getSteamKey().then((k) => { if (k) setKey(k); });
+    getSteamProfile().then((p) => { if (p) setProfile(p); });
+  }, []);
 
   const mapErr = (code?: string) =>
-    code === 'CANCELLED' ? t('steam.errCancelled')
-    : code === 'PRIVATE' ? t('steam.errPrivate')
+    code === 'PRIVATE' ? t('steam.errPrivate')
     : code === 'NEEDBOTH' ? t('steam.needBoth')
     : code === 'PROFILE' ? t('steam.errProfile')
     : code === 'FETCH' ? t('steam.errFetch')
-    : code === 'CONFIG' ? t('steam.errConfig')
+    : code === 'SERVER' ? t('steam.errServer')
     : t('steam.errGeneric');
 
   const run = async () => {
-    setError(null); setResult(null); setBusy(true); setProgress(null);
+    setError(null); setResult(null); setBusy(true);
     try {
-      const r = await importSteamLibrary((done, total) => setProgress({ done, total }));
-      setResult({ n: r.imported, h: r.hours });
+      setResult(await importSteam(profile, key));
     } catch (e: any) {
       setError(mapErr(e?.message));
     } finally {
-      setBusy(false); setProgress(null);
+      setBusy(false);
     }
   };
-
-  const runManual = async () => {
-    setError(null); setResult(null); setMBusy(true); setProgress(null);
-    try {
-      const r = await importSteamManual(profile, key, (done, total) => setProgress({ done, total }));
-      setResult({ n: r.imported, h: r.hours });
-    } catch (e: any) {
-      setError(mapErr(e?.message));
-    } finally {
-      setMBusy(false); setProgress(null);
-    }
-  };
-
-  const anyBusy = busy || mBusy;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top']}>
@@ -79,12 +63,12 @@ export default function SteamImportScreen() {
           </View>
         </View>
 
-        {error ? <Text style={{ color: colors.danger, fontWeight: '700' }}>{error}</Text> : null}
+        {error ? <Text testID="steam-error" style={{ color: colors.danger, fontWeight: '700' }}>{error}</Text> : null}
 
         {result ? (
           <View style={s.result}>
             <Ionicons name="checkmark-circle" size={22} color={colors.success} />
-            <Text style={[font.h2, { flex: 1, marginLeft: space(2) }]}>{t('steam.done', { n: result.n, h: result.h })}</Text>
+            <Text testID="steam-done" style={[font.h2, { flex: 1, marginLeft: space(2) }]}>{t('steam.done', { added: result.added, existing: result.existing, total: result.total })}</Text>
           </View>
         ) : null}
 
@@ -93,57 +77,33 @@ export default function SteamImportScreen() {
             <Text style={s.primaryText}>{t('steam.viewLibrary')}</Text>
           </Pressable>
         ) : (
-          <>
-            <Pressable style={[s.primary, anyBusy && { opacity: 0.7 }]} onPress={run} disabled={anyBusy}>
+          <View style={s.box}>
+            <View>
+              <Text style={s.label}>{t('steam.profileLabel')}</Text>
+              <TextInput value={profile} onChangeText={setProfile} placeholder={t('steam.profilePh')} placeholderTextColor={colors.textMuted} style={s.input} autoCapitalize="none" autoCorrect={false} editable={!busy} />
+            </View>
+            <View>
+              <Text style={s.label}>{t('steam.keyLabel')}</Text>
+              <TextInput value={key} onChangeText={setKey} placeholder={t('steam.keyPh')} placeholderTextColor={colors.textMuted} style={s.input} autoCapitalize="none" autoCorrect={false} secureTextEntry editable={!busy} />
+              <Pressable style={s.linkRow} onPress={() => Linking.openURL('https://steamcommunity.com/dev/apikey')} hitSlop={6}>
+                <Ionicons name="open-outline" size={14} color={colors.accent} />
+                <Text style={{ color: colors.accent, fontWeight: '700', fontSize: 13 }}>  {t('steam.getKey')}</Text>
+              </Pressable>
+            </View>
+            <Pressable style={[s.primary, busy && { opacity: 0.7 }]} onPress={run} disabled={busy}>
               {busy ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
                   <ActivityIndicator color={colors.accentInk} />
-                  <Text style={s.primaryText}>{progress && progress.total > 0 ? t('steam.importing', { done: progress.done, total: progress.total }) : t('steam.signInBtn')}</Text>
+                  <Text style={s.primaryText}>{t('steam.importing')}</Text>
                 </View>
               ) : (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
                   <Ionicons name="logo-steam" size={20} color={colors.accentInk} />
-                  <Text style={s.primaryText}>{t('steam.signInBtn')}</Text>
+                  <Text style={s.primaryText}>{t('steam.importBtn')}</Text>
                 </View>
               )}
             </Pressable>
-
-            <Pressable style={s.manualToggle} onPress={() => setShowManual((v) => !v)} hitSlop={6} disabled={anyBusy}>
-              <Ionicons name={showManual ? 'chevron-down' : 'chevron-forward'} size={15} color={colors.textMuted} />
-              <Text style={[font.muted, { marginLeft: space(1), textDecorationLine: 'underline' }]}>{t('steam.manualToggle')}</Text>
-            </Pressable>
-
-            {showManual ? (
-              <View style={s.manualBox}>
-                <Text style={[font.muted, { lineHeight: 20 }]}>{t('steam.manualIntro')}</Text>
-
-                <View>
-                  <Text style={s.label}>{t('steam.profileLabel')}</Text>
-                  <TextInput value={profile} onChangeText={setProfile} placeholder={t('steam.profilePh')} placeholderTextColor={colors.textMuted} style={s.input} autoCapitalize="none" autoCorrect={false} editable={!anyBusy} />
-                </View>
-
-                <View>
-                  <Text style={s.label}>{t('steam.keyLabel')}</Text>
-                  <TextInput value={key} onChangeText={setKey} placeholder={t('steam.keyPh')} placeholderTextColor={colors.textMuted} style={s.input} autoCapitalize="none" autoCorrect={false} secureTextEntry editable={!anyBusy} />
-                  <Pressable style={s.linkRow} onPress={() => Linking.openURL('https://steamcommunity.com/dev/apikey')} hitSlop={6}>
-                    <Ionicons name="open-outline" size={14} color={colors.accent} />
-                    <Text style={{ color: colors.accent, fontWeight: '700', fontSize: 13 }}>  {t('steam.getKey')}</Text>
-                  </Pressable>
-                </View>
-
-                <Pressable style={[s.secondary, anyBusy && { opacity: 0.7 }]} onPress={runManual} disabled={anyBusy}>
-                  {mBusy ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
-                      <ActivityIndicator color={colors.text} />
-                      <Text style={s.secondaryText}>{progress && progress.total > 0 ? t('steam.importing', { done: progress.done, total: progress.total }) : t('steam.manualBtn')}</Text>
-                    </View>
-                  ) : (
-                    <Text style={s.secondaryText}>{t('steam.manualBtn')}</Text>
-                  )}
-                </Pressable>
-              </View>
-            ) : null}
-          </>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -156,11 +116,8 @@ const s = StyleSheet.create({
   result: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.success, padding: space(4) },
   primary: { backgroundColor: colors.accent, borderRadius: radius.pill, paddingVertical: space(4), alignItems: 'center', justifyContent: 'center' },
   primaryText: { color: colors.accentInk, fontWeight: '800', fontSize: 16 },
-  manualToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: space(1) },
-  manualBox: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: space(4), gap: space(4) },
+  box: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: space(4), gap: space(4) },
   label: { ...font.muted, marginBottom: space(2), fontWeight: '700' },
   input: { backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: space(3), height: 46, color: colors.text, fontSize: 15, outlineStyle: 'none' } as any,
   linkRow: { flexDirection: 'row', alignItems: 'center', marginTop: space(2) },
-  secondary: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingVertical: space(3), alignItems: 'center', justifyContent: 'center' },
-  secondaryText: { color: colors.text, fontWeight: '700', fontSize: 15 },
 });

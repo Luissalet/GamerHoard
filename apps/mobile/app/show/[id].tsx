@@ -13,7 +13,7 @@ import { posterFor } from '../../src/img';
 import { showDetails, movieDetails, seasonEpisodes, gameImg, type Details, type TmdbEpisode } from '../../src/rawg';
 import { isSteamId, steamStoreUrl } from '../../src/steam';
 import { Genres, Meta, WherePlay, PlatformOwnership, StudioRow, SagaRow, Trailer, AlsoPlayed, Screenshots, Scores, PosterPickerModal, RatingStars, NotesCard } from '../../src/detail';
-import { ListPickerModal } from '../../src/ListPickerModal';
+import { SessionsCard } from '../../src/SessionsCard';
 import { ShareButton } from '../../src/ShareButton';
 import { Fireworks } from '../../src/Fireworks';
 import { progress, categoryOf, type GameState } from '../../src/categories';
@@ -50,7 +50,6 @@ export default function GameDetail() {
   const [dlcDone, setDlcDone] = useState<Set<number>>(new Set());
   const [celebrate, setCelebrate] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [listOpen, setListOpen] = useState(false);
   const [detNonce, setDetNonce] = useState(0);
 
   useEffect(() => { if (initial) { setGame(initial); setInLibrary(true); setFavorite(!!initial.is_favorite); setOwned(parseOwned(initial.owned_platforms)); } }, [initial]);
@@ -89,10 +88,18 @@ export default function GameDetail() {
     let alive = true;
     (async () => {
       const eps = await seasonEpisodes(gameId, 1);
-      const w = await data.getWatchedEpisodes(gameId);
+      let done: number[];
+      if (data.getDlcStates) {
+        // The library stores DLC by title (also written by other tools), so match by number or title.
+        const st = await data.getDlcStates(gameId);
+        done = eps.filter((e) => st.some((x) => x.completed && (x.number === e.number || x.title.toLowerCase() === e.name.toLowerCase()))).map((e) => e.number);
+      } else {
+        const w = await data.getWatchedEpisodes(gameId);
+        done = w.filter((x) => x.season === 1).map((x) => x.episode);
+      }
       if (!alive) return;
       setDlcs(eps);
-      setDlcDone(new Set(w.filter((x) => x.season === 1).map((x) => x.episode)));
+      setDlcDone(new Set(done));
     })();
     return () => { alive = false; };
   }, [det?.dlcCount, initial]);
@@ -149,16 +156,21 @@ export default function GameDetail() {
     setGame((g) => (g ? { ...g, owned_platforms: json } : g));
   }, [owned, game, ensureInLibrary]);
 
+  const refreshGame = useCallback(async () => {
+    const g = await data.getShowById(gameId);
+    if (g) setGame(g);
+  }, [gameId]);
+
   const toggleDlc = useCallback(async (num: number) => {
     if (!game) return;
     await ensureInLibrary();
     const on = !dlcDone.has(num);
     const next = new Set(dlcDone); on ? next.add(num) : next.delete(num);
     setDlcDone(next);
-    await data.setEpisodeWatched(game.tvdb_id, 1, num, on);
+    await data.setEpisodeWatched(game.tvdb_id, 1, num, on, dlcs?.find((d) => d.number === num)?.name);
     setGame((g) => (g ? { ...g, watched_episodes: next.size } : g));
     if (on && det?.dlcCount && next.size >= det.dlcCount) setCelebrate(t('gameDetail.allDlc'));
-  }, [dlcDone, game, det, ensureInLibrary, t]);
+  }, [dlcDone, dlcs, game, det, ensureInLibrary, t]);
 
   const pickCover = useCallback(async (url: string) => {
     if (!game) return;
@@ -182,6 +194,7 @@ export default function GameDetail() {
     { st: 'watching', key: 'gameDetail.stPlaying' },
     { st: 'stopped', key: 'gameDetail.stPaused' },
     { st: 'archived', key: 'gameDetail.stCompleted' },
+    { st: 'dropped', key: 'gameDetail.stDropped' },
   ];
 
   return (
@@ -210,9 +223,6 @@ export default function GameDetail() {
           </Pressable>
           <Pressable style={[s.iconBtn, { borderColor: favorite ? colors.danger : colors.border }]} onPress={toggleFavorite} hitSlop={6}>
             <Ionicons name={favorite ? 'heart' : 'heart-outline'} size={22} color={favorite ? colors.danger : colors.text} />
-          </Pressable>
-          <Pressable style={[s.iconBtn, { borderColor: colors.border }]} onPress={() => setListOpen(true)} hitSlop={6}>
-            <Ionicons name="list" size={22} color={colors.text} />
           </Pressable>
         </View>
 
@@ -248,6 +258,7 @@ export default function GameDetail() {
                 </Pressable>
               ) : null}
               <NotesCard value={game.notes ?? null} onSave={saveNotes} />
+              {inLibrary ? <SessionsCard gameId={game.tvdb_id} onLogged={refreshGame} /> : null}
               <StudioRow developers={det?.developers} publishers={det?.publishers} />
               <SagaRow gameId={det?.tmdbId} currentId={det?.tmdbId} />
               <Trailer url={det?.trailerUrl} />
@@ -279,7 +290,6 @@ export default function GameDetail() {
       </View>
 
       <PosterPickerModal visible={pickerOpen} tmdbId={det?.tmdbId} current={game.poster} onClose={() => setPickerOpen(false)} onPick={pickCover} />
-      <ListPickerModal visible={listOpen} target={{ kind: 'series', tvdb: game.tvdb_id }} onEnsure={ensureInLibrary} onClose={() => setListOpen(false)} />
       {celebrate && <Fireworks label={celebrate} onDone={() => setCelebrate(null)} />}
       <Pressable onPress={goBack} style={[s.back, { top: insets.top + space(2) }]} hitSlop={10}><Ionicons name="chevron-down" size={26} color={colors.text} /></Pressable>
       <ShareButton title={game.title} path={`/show/${game.tvdb_id}`} top={insets.top + space(2)} />
@@ -300,8 +310,8 @@ const s = StyleSheet.create({
   lib: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: space(3), borderRadius: radius.pill },
   libText: { fontWeight: '800', fontSize: 15 },
   iconBtn: { width: 52, alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill, borderWidth: 1.5 },
-  stateRow: { flexDirection: 'row', gap: space(2), marginHorizontal: space(4), marginTop: space(3) },
-  stateChip: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
+  stateRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space(2), marginHorizontal: space(4), marginTop: space(3) },
+  stateChip: { flexGrow: 1, alignItems: 'center', paddingVertical: 8, paddingHorizontal: space(2), borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface },
   stateChipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border, marginTop: space(3) },
   tab: { ...font.h2, color: colors.textMuted, paddingVertical: space(3) },

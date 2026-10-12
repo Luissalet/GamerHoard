@@ -1,9 +1,10 @@
 // Web data source. Never imports ./local (keeps expo-sqlite out of the web bundle).
-// local (default) -> in-memory (MemorySource);  supabase -> cloud (see ./supabase).
+//   localapi (default) -> the local server and the shared library
+//   memory             -> browser-only demo data
 import { BACKEND } from '../lib/backend';
 import type { DataSource } from './types';
 import { MemorySource } from './memory';
-import { SupabaseSource } from './supabase';
+import { LocalApiSource } from './localapi';
 
-export const data: DataSource = BACKEND === 'supabase' ? new SupabaseSource() : new MemorySource();
+export const data: DataSource = BACKEND === 'memory' ? new MemorySource() : new LocalApiSource();
 export * from './types';

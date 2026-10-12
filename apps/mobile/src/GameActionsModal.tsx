@@ -17,9 +17,10 @@ const STATES: { st: GameState; icon: keyof typeof Ionicons.glyphMap; key: string
   { st: 'watching', icon: 'game-controller-outline', key: 'gameDetail.stPlaying' },
   { st: 'stopped', icon: 'pause-outline', key: 'gameDetail.stPaused' },
   { st: 'archived', icon: 'trophy-outline', key: 'gameDetail.stCompleted' },
+  { st: 'dropped', icon: 'close-circle-outline', key: 'gameDetail.stDropped' },
 ];
 
-const stateOf = (g: ShowRow): GameState => (['backlog', 'watching', 'stopped', 'archived'].includes(g.state) ? (g.state as GameState) : 'watching');
+const stateOf = (g: ShowRow): GameState => (['backlog', 'watching', 'stopped', 'archived', 'dropped'].includes(g.state) ? (g.state as GameState) : 'watching');
 
 function confirmAsync(title: string, message: string, okLabel: string, cancelLabel: string): Promise<boolean> {
   if (Platform.OS === 'web') return Promise.resolve(!!(globalThis as any).confirm?.(`${title}\n\n${message}`));

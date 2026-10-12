@@ -58,6 +58,7 @@ export default function HistoryScreen() {
                     <Text style={font.muted}>
                       {item.kind === 'episode' ? t('history.dlc') : t('history.game')}
                       {item.watched_at ? `  ·  ${localHm(String(item.watched_at))}` : ''}
+                      {item.minutes ? `  ·  ${t('sessions.min', { n: item.minutes })}` : ''}
                     </Text>
                   </View>
                   {target ? <Ionicons name="chevron-forward" size={16} color={colors.textMuted} /> : null}

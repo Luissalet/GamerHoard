@@ -23,7 +23,9 @@ export interface ShowRow {
   /** Free-form personal notes about the game. */
   notes?: string | null;
 }
-export interface RecentRow { id: number; kind: string; title: string; season: number | null; episode: number | null; watched_at: string | null; poster?: string | null; show_tvdb?: number | null; movie_uuid?: string | null; }
+export interface RecentRow { id: number; kind: string; title: string; season: number | null; episode: number | null; watched_at: string | null; poster?: string | null; show_tvdb?: number | null; movie_uuid?: string | null; /** Minutes of a logged play session. */ minutes?: number | null; notes?: string | null; }
+/** One logged play session (shared library only). */
+export interface GameSession { sessionId: string; minutes: number; playedAt: string; notes?: string }
 export interface MovieRow { uuid: string | null; title: string; slug: string | null; year: number | null; watched_at: string | null; poster: string | null; release_date: string | null; is_favorite: number; genres?: string | null; rewatch_count?: number | null; tmdb_id?: number | null; }
 export interface ReviewRow { id: number; text: string; entity_type: string | null; title: string | null; is_spoiler: number; like_count: number; created_at: string | null; }
 export interface BadgeRow { id: number; key: string | null; label: string; grp: string | null; show_tvdb: number | null; }
@@ -65,7 +67,7 @@ export interface DataSource {
   /** Append a watch event to the user's history (single marks; bulk season-marks log one row).
    *  Pass tvdb (episodes) / uuid (movies) so history links don't depend on title matching. */
   logRecent(e: { kind: 'episode' | 'movie'; title: string; season?: number | null; episode?: number | null; poster?: string | null; tvdb?: number | null; uuid?: string | null }): Promise<void>;
-  setShowState(tvdbId: number, state: 'backlog' | 'watching' | 'stopped' | 'archived'): Promise<void>;
+  setShowState(tvdbId: number, state: 'backlog' | 'watching' | 'stopped' | 'archived' | 'dropped'): Promise<void>;
   /** "I watched it again": bumps rewatch_count and refreshes watched_at. */
   rewatchMovie(uuid: string): Promise<void>;
   /** +1 on an already-watched episode ("lo he vuelto a ver"). No-op if the episode isn't marked. */
@@ -80,7 +82,13 @@ export interface DataSource {
   setProgress(tvdbId: number, lastSeason: number, lastEpisode: number, watchedEpisodes: number): Promise<void>;
   getWatchedEpisodes(tvdbShow: number): Promise<{ season: number; episode: number }[]>;
   seedEpState(tvdbShow: number, eps: { season: number; episode: number }[]): Promise<void>;
-  setEpisodeWatched(tvdbShow: number, season: number, episode: number, watched: boolean): Promise<void>;
+  /** `title` names the DLC for backends that key DLC by title (the shared library). */
+  setEpisodeWatched(tvdbShow: number, season: number, episode: number, watched: boolean, title?: string): Promise<void>;
+  /** Shared library only: DLC state by title, so DLC marked through Faustus shows up. */
+  getDlcStates?(tvdbShow: number): Promise<{ title: string; completed: boolean; number?: number }[]>;
+  /** Shared library only: play sessions of one game and logging a new one. */
+  getSessions?(tvdbId: number): Promise<GameSession[]>;
+  logSession?(tvdbId: number, session: { minutes: number; playedAt?: string; notes?: string }): Promise<void>;
   addShow(p: AddShow): Promise<void>;
   setShowNextAir(tvdbId: number, date: string | null, season: number | null, episode: number | null): Promise<void>;
   addMovie(p: AddMovie): Promise<void>;

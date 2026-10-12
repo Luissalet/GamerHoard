@@ -9,9 +9,14 @@
   ],
   "scripts": {
     "start": "node mcp/server.mjs",
+    "server": "node server/index.mjs",
+    "setup": "npm install --prefix server",
+    "build:web": "npm run build:web --workspace @gamerhoard/mobile",
     "web": "npm run web --workspace @gamerhoard/mobile",
     "typecheck": "npm run typecheck --workspace @gamerhoard/mobile",
-    "test": "node --test"
+    "test": "node --test \"mcp/*.test.mjs\" \"server/*.test.mjs\" \"apps/mobile/src/*.test.mjs\""
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }
