@@ -27,6 +27,7 @@ The web app and the MCP server read and write the same file and notice each othe
 
 - **Games**: home with "Playing now", "Almost done" and recently added, library grid by status (backlog, playing, paused, completed, dropped), search, sort (recent, A-Z, hours), favourites, genre filter and a weighted "what do I play now?" picker. Long-press a game for quick actions.
 - **Game page**: one-tap status, rating (1-10), personal notes, owned platforms, DLC checklist (when RAWG knows the DLCs), **play sessions** (minutes and a note per session), Metacritic and store links, trailer, screenshots, similar games.
+- **Saved Steam achievements**: the Achievements tab on a Steam game's page in shared local mode shows the saved snapshot, overall unlocked/total progress, names, descriptions and known unlock dates. Search and unlocked/locked filters have their own result count and pages of 20; overall progress stays the same. Missing lists and summary-only snapshots are identified explicitly. Viewing the panel reads local data only.
 - **Explore**: search RAWG, trends, new releases, popular and top rated, by genre and platform; add straight to the backlog.
 - **Stats and profile**: totals, hours, completion, top genres, platforms and studios, games with most DLC.
 - **History**: logged sessions (with minutes) and DLC marked as done.
@@ -99,7 +100,7 @@ npm run typecheck    # the Expo client
 ## Limits
 
 - Native MCP tools operate on the shared local game library. They do not claim access to a browser collection or a cloud account. Original lists, reviews, account/social screens, movies, badges, import parsers and Supabase source are recovered. Their historical game-metadata compatibility stubs remain as before; this does not add a new movie/person catalogue provider.
-- The web UI does not show Steam achievements (the MCP tools and `/api/games/<id>/achievements` do).
+- The achievement panel uses the shared local library; historical browser, cloud and native storage retain their existing features. Updating a snapshot remains the existing explicit Steam MCP/API operation.
 - In shared mode, Clear data clears browser collections while retaining shared games. The UI states this boundary and offers exports for both. Other original modes retain their own clear operation.
 - Online metadata (covers, DLC lists, trailers) needs `RAWG_API_KEY`.
 

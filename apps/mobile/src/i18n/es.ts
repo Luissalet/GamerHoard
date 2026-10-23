@@ -3,6 +3,16 @@
 import type { Dict } from './en';
 
 const es: Dict = {
+  achievements: {
+    tab: 'Logros',
+    title: 'Logros Steam guardados', saved: 'Leyendo la instantánea guardada en tu biblioteca compartida.',
+    snapshot: 'Instantánea: {{date}}', progress: '{{unlocked}} de {{total}} desbloqueados',
+    search: 'Buscar logros', all: 'Todos', unlocked: 'Desbloqueados', locked: 'Pendientes', clear: 'Limpiar filtros',
+    loading: 'Cargando logros', none: 'No hay una lista de logros guardada para este juego.',
+    summaryOnly: 'Hay un resumen guardado, pero no está disponible el detalle de cada logro.',
+    noMatches: 'Ningún logro guardado coincide con estos filtros.', page: '{{from}}–{{to}} de {{total}} resultados',
+    previous: 'Anterior', next: 'Siguiente',
+  },
   common: {
     cancel: 'Cancelar',
     delete: 'Borrar',

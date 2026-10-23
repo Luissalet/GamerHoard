@@ -26,6 +26,12 @@ export interface ShowRow {
 export interface RecentRow { id: number; kind: string; title: string; season: number | null; episode: number | null; watched_at: string | null; poster?: string | null; show_tvdb?: number | null; movie_uuid?: string | null; /** Minutes of a logged play session. */ minutes?: number | null; notes?: string | null; }
 /** One logged play session (shared library only). */
 export interface GameSession { sessionId: string; minutes: number; playedAt: string; notes?: string }
+export interface SteamAchievement { apiName: string; name?: string; description?: string; unlocked: boolean; unlockedAt?: string | null }
+export interface SteamAchievements {
+  gameId: string; title: string; syncedAt: string | null; available: boolean;
+  summary: { unlocked: number; total: number } | null;
+  total: number; offset: number; achievements: SteamAchievement[];
+}
 export interface MovieRow { uuid: string | null; title: string; slug: string | null; year: number | null; watched_at: string | null; poster: string | null; release_date: string | null; is_favorite: number; genres?: string | null; rewatch_count?: number | null; tmdb_id?: number | null; }
 export interface ReviewRow { id: number; text: string; entity_type: string | null; title: string | null; is_spoiler: number; like_count: number; created_at: string | null; }
 export interface BadgeRow { id: number; key: string | null; label: string; grp: string | null; show_tvdb: number | null; }
@@ -88,6 +94,7 @@ export interface DataSource {
   getDlcStates?(tvdbShow: number): Promise<{ title: string; completed: boolean; number?: number }[]>;
   /** Shared library only: play sessions of one game and logging a new one. */
   getSessions?(tvdbId: number): Promise<GameSession[]>;
+  getAchievements?(tvdbId: number, filters?: { unlocked?: boolean; query?: string; offset?: number; limit?: number }): Promise<SteamAchievements>;
   logSession?(tvdbId: number, session: { minutes: number; playedAt?: string; notes?: string }): Promise<void>;
   addShow(p: AddShow): Promise<void>;
   setShowNextAir(tvdbId: number, date: string | null, season: number | null, episode: number | null): Promise<void>;

@@ -53,7 +53,21 @@ test('Steam achievement summary persists without changing manual progress or ses
   const reopened = await new Library(file).find(game.id);
   assert.deepEqual(reopened.steamAchievements, { unlocked: 2, total: 3, syncedAt: result.syncedAt });
   assert.equal(reopened.progressPercent, 55);
+  const summaryOnly = await lib.achievements(game.id);
+  assert.deepEqual(summaryOnly.summary, { unlocked: 2, total: 3 });
+  assert.equal(summaryOnly.available, false);
+  await lib.setSteamAchievements(game.id, 2, 3, [
+    { apiName: 'ONE', name: 'First', unlocked: true },
+    { apiName: 'TWO', name: 'Second', unlocked: false },
+    { apiName: 'THREE', name: 'Third', unlocked: true },
+  ]);
+  const filtered = await lib.achievements(game.id, { unlocked: false, query: 'Second', limit: 1 });
+  assert.deepEqual(filtered.summary, { unlocked: 2, total: 3 });
+  assert.equal(filtered.total, 1);
+  assert.equal(filtered.achievements[0].apiName, 'TWO');
   const before = await readFile(file, 'utf8');
+  assert.equal((await lib.achievements(game.id, { query: 'no-matches' })).total, 0);
+  assert.equal(await readFile(file, 'utf8'), before);
   await assert.rejects(lib.setSteamAchievements(game.id, 4, 3), /no válido/);
   assert.equal(await readFile(file, 'utf8'), before);
 });

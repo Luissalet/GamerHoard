@@ -1,6 +1,16 @@
 // English translations (default language). Keys grouped by screen/feature.
 // The Spanish file (es.ts) is typed against `Dict` so tsc flags any missing/extra key.
 const en = {
+  achievements: {
+    tab: 'Achievements',
+    title: 'Saved Steam achievements', saved: 'Reading the snapshot stored in your shared library.',
+    snapshot: 'Snapshot: {{date}}', progress: '{{unlocked}} of {{total}} unlocked',
+    search: 'Search achievements', all: 'All', unlocked: 'Unlocked', locked: 'Locked', clear: 'Clear filters',
+    loading: 'Loading achievements', none: 'No achievement list is saved for this game.',
+    summaryOnly: 'A summary is saved, but individual achievement details are not available.',
+    noMatches: 'No saved achievements match these filters.', page: '{{from}}–{{to}} of {{total}} results',
+    previous: 'Previous', next: 'Next',
+  },
   common: {
     cancel: 'Cancel',
     delete: 'Delete',

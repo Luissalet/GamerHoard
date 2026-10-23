@@ -14,6 +14,7 @@ import { showDetails, movieDetails, seasonEpisodes, gameImg, type Details, type 
 import { isSteamId, steamStoreUrl } from '../../src/steam';
 import { Genres, Meta, WherePlay, PlatformOwnership, StudioRow, SagaRow, Trailer, AlsoPlayed, Screenshots, Scores, PosterPickerModal, RatingStars, NotesCard } from '../../src/detail';
 import { SessionsCard } from '../../src/SessionsCard';
+import { SteamAchievementsCard } from '../../src/SteamAchievementsCard';
 import { useCopilotView } from '../../src/copilotRegistry';
 import { ShareButton } from '../../src/ShareButton';
 import { ListPickerModal } from '../../src/ListPickerModal';
@@ -46,7 +47,7 @@ export default function GameDetail() {
   const [favorite, setFavorite] = useState(false);
   const [det, setDet] = useState<Details | null>(null);
   const [detLoading, setDetLoading] = useState(true);
-  const [tab, setTab] = useState<'info' | 'dlc'>('info');
+  const [tab, setTab] = useState<'info' | 'dlc' | 'achievements'>('info');
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [dlcs, setDlcs] = useState<TmdbEpisode[] | null>(null);
   const [dlcDone, setDlcDone] = useState<Set<number>>(new Set());
@@ -247,10 +248,11 @@ export default function GameDetail() {
         <View style={s.tabs}>
           <Pressable style={{ flex: 1, alignItems: 'center' }} onPress={() => setTab('info')}><Text style={[s.tab, tab === 'info' && s.tabActive]}>{t('gameDetail.info')}</Text></Pressable>
           {hasDlc && <Pressable style={{ flex: 1, alignItems: 'center' }} onPress={() => setTab('dlc')}><Text style={[s.tab, tab === 'dlc' && s.tabActive]}>{t('gameDetail.dlc')} ({det?.dlcCount})</Text></Pressable>}
+          {inLibrary && game.steam_appid && data.getAchievements ? <Pressable accessibilityRole="button" accessibilityState={{ selected: tab === 'achievements' }} style={{ flex: 1, alignItems: 'center' }} onPress={() => setTab('achievements')}><Text style={[s.tab, tab === 'achievements' && s.tabActive]}>{t('achievements.tab')}</Text></Pressable> : null}
         </View>
 
         <ScrollView contentContainerStyle={{ paddingBottom: space(10) }}>
-          {tab === 'info' ? (
+          {tab === 'achievements' ? <SteamAchievementsCard gameId={game.tvdb_id} /> : tab === 'info' ? (
             <>
               <WherePlay stores={det?.stores} />
               <PlatformOwnership platforms={det?.platforms} owned={owned} onToggle={toggleOwnedPlatform} />

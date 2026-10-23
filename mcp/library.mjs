@@ -168,6 +168,7 @@ export class Library {
     const matches = all.filter(item => (unlocked === undefined || item.unlocked === unlocked) &&
       (!q || [item.apiName, item.name, item.description].some(value => str(value).toLocaleLowerCase().includes(q))));
     return { gameId: game.id, title: game.title, syncedAt: snapshot?.syncedAt || null,
+      summary: snapshot ? { unlocked: snapshot.unlocked, total: snapshot.total } : null,
       available: Array.isArray(snapshot?.items), total: matches.length, offset: start,
       achievements: matches.slice(start, start + size) };
   }

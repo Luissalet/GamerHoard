@@ -2,7 +2,7 @@
 // same library file as the Faustus MCP tools (~/.gamerhoard/library.json). There is no
 // shared game library. Historical collections reuse the original browser storage adapter.
 import type {
-  DataSource, Profile, ShowRow, RecentRow, ListRow, ListItemRow, MovieRow, ReviewRow, BadgeRow, AddShow, AddMovie, SteamGame, GameSession,
+  DataSource, Profile, ShowRow, RecentRow, ListRow, ListItemRow, MovieRow, ReviewRow, BadgeRow, AddShow, AddMovie, SteamGame, GameSession, SteamAchievements,
 } from './types';
 import { STEAM_OFFSET, apiGameToRow, genreIdsToNames, type ApiGame } from './localapiMap';
 import { MemorySource } from './memory';
@@ -86,6 +86,11 @@ export class LocalApiSource extends MemorySource implements DataSource {
   async getSessions(tvdbId: number): Promise<GameSession[]> {
     const res = await request<{ sessions: GameSession[] }>('GET', `/api/games/${tvdbId}/sessions?limit=50`);
     return res.sessions;
+  }
+  async getAchievements(tvdbId: number, filters: { unlocked?: boolean; query?: string; offset?: number; limit?: number } = {}): Promise<SteamAchievements> {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(filters)) if (value !== undefined) params.set(key, String(value));
+    return request('GET', `/api/games/${tvdbId}/achievements?${params}`);
   }
   async logSession(tvdbId: number, s: { minutes: number; playedAt?: string; notes?: string }) {
     await request('POST', `/api/games/${tvdbId}/sessions`, s);

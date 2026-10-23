@@ -18,7 +18,7 @@ Games are returned in the library shape plus `tvdbId`, a numeric id the web clie
 | `PUT /api/games/:id/dlc` | `{ title, completed, number? }` mark a DLC |
 | `GET /api/games/:id/sessions?from&to&limit` | play sessions of a game |
 | `POST /api/games/:id/sessions` | `{ minutes, playedAt?, notes?, sessionId? }` log a session (id and time are filled in when missing) |
-| `GET /api/games/:id/achievements?unlocked&query&offset&limit` | saved Steam achievements |
+| `GET /api/games/:id/achievements?unlocked&query&offset&limit` | saved Steam achievements; `summary` contains the global snapshot `{ unlocked, total }` or null, while `total` counts filtered results independently of paging. `available` distinguishes an individual list from a summary-only or absent snapshot; `syncedAt` is its saved timestamp. Also returned by `gamer_achievements`. |
 | `POST /api/games/:id/steam-achievements` | `{ steamId, apiKey }` refresh them (the key is not stored) |
 | `GET /api/sessions?from&to&limit` | sessions of every game |
 | `GET /api/stats` | library statistics |

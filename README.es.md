@@ -27,6 +27,7 @@ La app web y el servidor MCP leen y escriben el mismo archivo y se enteran de lo
 
 - **Juegos**: inicio con «Jugando ahora», «A punto de acabar» y añadidos recientes; rejilla por estado (pendiente, jugando, pausado, completado, abandonado), búsqueda, orden (recientes, A-Z, horas), favoritos, filtro por género y el selector ponderado «¿a qué juego ahora?». Mantén pulsado un juego para las acciones rápidas.
 - **Ficha del juego**: estado de un toque, nota (1-10), notas personales, plataformas que tienes, lista de DLC (cuando RAWG los conoce), **sesiones de juego** (minutos y una nota por sesión), Metacritic y enlaces a tiendas, tráiler, capturas y juegos similares.
+- **Logros guardados**: la pestaña Logros de un juego Steam en modo local compartido muestra progreso global, fecha de la instantánea, nombres, descripciones y desbloqueos conocidos. Búsqueda y filtros de desbloqueados/pendientes con recuento propio y páginas de 20; el progreso global se conserva. Distingue lista ausente de instantánea con sólo resumen. Consultarlo lee datos locales.
 - **Explora**: busca en RAWG, tendencias, novedades, populares y mejor valorados, por género y plataforma; añade directo al backlog.
 - **Stats y perfil**: totales, horas, completado, géneros, plataformas y estudios más frecuentes, juegos con más DLC.
 - **Historial**: sesiones registradas (con minutos) y DLC marcados.
@@ -99,7 +100,7 @@ npm run typecheck    # el cliente Expo
 ## Límites
 
 - Las herramientas MCP trabajan con los juegos de la biblioteca local compartida; no afirman acceso a las colecciones del navegador ni a la cuenta en la nube. Se han recuperado listas, reseñas, cuentas y pantallas sociales, películas, insignias, parsers de importación y Supabase. Las compatibilidades de catálogo heredadas siguen como antes; no se añade un nuevo proveedor de películas o personas.
-- La web no muestra los logros de Steam (las herramientas MCP y `/api/games/<id>/achievements` sí).
+- El panel de logros usa la biblioteca local compartida. Los modos históricos de navegador, nube y almacenamiento nativo conservan sus funciones; actualizar la instantánea sigue siendo la operación explícita MCP/API existente.
 - En el modo compartido, Borrar datos vacía las colecciones del navegador y conserva los juegos compartidos. La interfaz lo explica y permite exportar ambos. Los demás modos conservan su operación original de borrado.
 - Los metadatos online (portadas, lista de DLC, tráilers) necesitan `RAWG_API_KEY`.
 
