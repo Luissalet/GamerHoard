@@ -206,7 +206,7 @@ export default function GameDetail() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <Image source={{ uri: hero }} style={s.hero} contentFit="cover" blurRadius={det?.backdrop ? 0 : 3} />
       <View style={s.fade} />
-      <View style={{ flex: 1, marginTop: 230 }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingTop: 230, paddingBottom: space(10) }}>
         <View style={s.headerRow}>
           <Pressable onPress={() => setPickerOpen(true)}>
             <Image source={{ uri: cover }} style={s.cover} contentFit="cover" />
@@ -251,7 +251,7 @@ export default function GameDetail() {
           {inLibrary && game.steam_appid && data.getAchievements ? <Pressable accessibilityRole="button" accessibilityState={{ selected: tab === 'achievements' }} style={{ flex: 1, alignItems: 'center' }} onPress={() => setTab('achievements')}><Text style={[s.tab, tab === 'achievements' && s.tabActive]}>{t('achievements.tab')}</Text></Pressable> : null}
         </View>
 
-        <ScrollView contentContainerStyle={{ paddingBottom: space(10) }}>
+        <View>
           {tab === 'achievements' ? <SteamAchievementsCard gameId={game.tvdb_id} /> : tab === 'info' ? (
             <>
               <WherePlay stores={det?.stores} />
@@ -294,8 +294,8 @@ export default function GameDetail() {
               })}
             </View>
           )}
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
 
       <PosterPickerModal visible={pickerOpen} tmdbId={det?.tmdbId} current={game.poster} onClose={() => setPickerOpen(false)} onPick={pickCover} />
       {celebrate && <Fireworks label={celebrate} onDone={() => setCelebrate(null)} />}
