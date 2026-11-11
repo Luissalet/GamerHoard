@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Library } from './library.mjs';
 import { searchCatalog, addFromCatalog, steamImport, steamAchievements } from './integrations.mjs';
 
@@ -26,6 +28,22 @@ const tools = [
   ['gamer_export_json', 'Crear una copia JSON completa en una ruta nueva. Nunca sobrescribe.', object({ path: S }, ['path'])],
 ].map(([name, description, inputSchema]) => ({ name, description, inputSchema,
   annotations: { readOnlyHint: ['gamer_list', 'gamer_get', 'gamer_achievements', 'gamer_search_catalog', 'gamer_sessions', 'gamer_stats', 'gamer_activity', 'gamer_backlog'].includes(name) } }));
+
+// Skills: procedures from the family's library copied beside the data (the hub keeps the copy). HOARD_SKILLS=0 turns them off.
+let shelf = { shelfSkills: () => [], readSkill: () => { throw new Error('No hay skills.'); }, skillsInstructions: (dir, text) => text };
+try { shelf = await import('../server/hoard-commons/express.js'); } catch { /* without the shared code there are none */ }
+const SKILLS_DIR = process.env.HOARD_SKILLS === '0' ? '' : (process.env.GAMERHOARD_SKILLS_DIR
+  || (process.env.GAMERHOARD_DATA_FILE ? join(dirname(process.env.GAMERHOARD_DATA_FILE), 'skills') : join(dirname(dirname(fileURLToPath(import.meta.url))), 'data', 'skills')));
+const carried = SKILLS_DIR ? shelf.shelfSkills(SKILLS_DIR) : [];
+if (carried.length) tools.push(
+  { name: 'skills_list', description: 'The skills this app carries: procedures from the family skill library for the work done here. Read the one that fits with skill_read before starting.', inputSchema: object({}), annotations: { readOnlyHint: true } },
+  { name: 'skill_read', description: 'One of this app\'s skills in full: the procedure to follow, its pitfalls and how to verify the result.', inputSchema: object({ slug: S, file: S }, ['slug']), annotations: { readOnlyHint: true } });
+function skillCall(name, a) {
+  if (!carried.length) return undefined;
+  if (name === 'skills_list') return { skills: shelf.shelfSkills(SKILLS_DIR).map(({ slug, name: title, description, version, files }) => ({ slug, name: title ?? slug, description: description ?? '', version: version ?? '', files: files ?? [] })) };
+  if (name === 'skill_read') return shelf.readSkill(SKILLS_DIR, a.slug, a.file);
+  return undefined;
+}
 
 function compactGame(game) {
   if (!game?.steamAchievements?.items) return game;
@@ -62,13 +80,16 @@ async function handle(request) {
   if (id === undefined) return;
   try {
     let result;
-    if (method === 'initialize') result = { protocolVersion: params.protocolVersion || '2025-03-26', capabilities: { tools: { listChanged: false } }, serverInfo: { name: 'gamerhoard', version: '1.0.0' } };
+    if (method === 'initialize') result = { protocolVersion: params.protocolVersion || '2025-03-26', capabilities: { tools: { listChanged: false }, ...(carried.length ? { prompts: { listChanged: false } } : {}) }, serverInfo: { name: 'gamerhoard', version: '1.0.0' },
+      ...(carried.length ? { instructions: shelf.skillsInstructions(SKILLS_DIR, '') } : {}) };
     else if (method === 'ping') result = {};
     else if (method === 'tools/list') result = { tools };
     else if (method === 'tools/call') {
-      try { result = { content: [{ type: 'text', text: JSON.stringify(await call(params.name, params.arguments || {})) }] }; }
+      try { result = { content: [{ type: 'text', text: JSON.stringify(skillCall(params.name, params.arguments || {}) ?? await call(params.name, params.arguments || {})) }] }; }
       catch (error) { result = { isError: true, content: [{ type: 'text', text: error.message }] }; }
-    } else { send({ jsonrpc: '2.0', id, error: { code: -32601, message: `Método desconocido: ${method}` } }); return; }
+    } else if (carried.length && method === 'prompts/list') result = { prompts: carried.map((s) => ({ name: `skill-${s.slug}`, description: String(s.description ?? '').slice(0, 300) })) };
+    else if (carried.length && method === 'prompts/get') result = { messages: [{ role: 'user', content: { type: 'text', text: shelf.readSkill(SKILLS_DIR, params.name).text.replace(/^\uFEFF?---\r?\n[\s\S]*?\r?\n---\r?\n/, '') } }] };
+    else { send({ jsonrpc: '2.0', id, error: { code: -32601, message: `Método desconocido: ${method}` } }); return; }
     send({ jsonrpc: '2.0', id, result });
   } catch (error) { send({ jsonrpc: '2.0', id, error: { code: -32603, message: error.message } }); }
 }

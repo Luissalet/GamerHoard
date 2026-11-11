@@ -17,3 +17,4 @@ server/node_modules/
 apps/mobile/.env
 apps/mobile/.env.local
 apps/mobile/dist/
+data/
