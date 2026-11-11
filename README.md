@@ -111,3 +111,7 @@ Settings lets the web user choose the shared Faustus library, the historical bro
 Shared games and sessions still use the native REST/MCP library. Lists, movies and other historical browser collections reuse MemorySource and its existing localStorage keys, including persisted changes after reopening. A game can be added to a restored custom list from its detail page. Cloud social/account functions use the recovered Supabase client/schema; browser collections are not advertised as published or synced. The original Steam account flow remains available in cloud mode alongside the current manual/profile import. Native unsupported episode-counter writes report their domain limitation instead of silently reporting success.
 
 `packages/` and `supabase/` are recovered historical source; no migrations, deployment, provider accounts or real credentials are run by this restoration. iOS/Android runtime and real cloud connectivity need their configured environment; typechecking and deterministic client contract fixtures are separate from such live validation.
+
+## Skills
+
+The `skills` block of `faustus-plugin.json` names the procedures of the family's skill library that fit this app's work: `game-library-tracking`. The hub's Skills tab shows and changes them. This app does not hand them to connecting agents yet.
