@@ -8,7 +8,7 @@ Una **biblioteca de videojuegos con app web y nativa**. En el modo compartido, l
 - las **herramientas MCP** que usa Faustus (o cualquier cliente MCP) desde un chat,
 - una **app nativa** opcional (Expo, SQLite en el dispositivo).
 
-El modo local compartido se abre sin iniciar sesión. Supabase conserva opcionalmente las cuentas y funciones de comunidad; la app nativa puede usar su propia biblioteca SQLite. Esta recuperación local no cambia el despliegue público de gamer-hoard.com. Necesita Node.js 22 o superior.
+El modo local compartido se abre sin iniciar sesión. Supabase conserva opcionalmente las cuentas y funciones de comunidad; la app nativa puede usar su propia biblioteca SQLite. Necesita Node.js 22 o superior.
 
 ## Puesta en marcha
 
@@ -99,15 +99,35 @@ npm run typecheck    # el cliente Expo
 
 ## Límites
 
-- Las herramientas MCP trabajan con los juegos de la biblioteca local compartida; no afirman acceso a las colecciones del navegador ni a la cuenta en la nube. Se han recuperado listas, reseñas, cuentas y pantallas sociales, películas, insignias, parsers de importación y Supabase. Las compatibilidades de catálogo heredadas siguen como antes; no se añade un nuevo proveedor de películas o personas.
-- El panel de logros usa la biblioteca local compartida. Los modos históricos de navegador, nube y almacenamiento nativo conservan sus funciones; actualizar la instantánea sigue siendo la operación explícita MCP/API existente.
-- En el modo compartido, Borrar datos vacía las colecciones del navegador y conserva los juegos compartidos. La interfaz lo explica y permite exportar ambos. Los demás modos conservan su operación original de borrado.
+- Las herramientas MCP trabajan con los juegos de la biblioteca local compartida; no afirman acceso a las colecciones del navegador ni a la cuenta en la nube.
+- El panel de logros usa la biblioteca local compartida. Actualizar la instantánea es la operación explícita MCP/API de Steam.
+- En el modo compartido, Borrar datos vacía las colecciones del navegador y conserva los juegos compartidos. La interfaz lo explica y permite exportar ambos. Los demás modos conservan su propia operación de borrado.
 - Los metadatos online (portadas, lista de DLC, tráilers) necesitan `RAWG_API_KEY`.
+- El funcionamiento en iOS/Android y la conexión a una nube real requieren su entorno configurado; la comprobación de tipos y los fixtures de contrato son aparte.
 
-## Fuentes de datos recuperadas
+## Fuentes de datos
 
-En Ajustes puedes elegir la biblioteca compartida con Faustus, la biblioteca original de este navegador o tu cuenta en la nube. `EXPO_PUBLIC_BACKEND=localapi` sigue siendo el modo web por defecto. `memory` y el `local` original usan el almacenamiento del navegador en web; `local` usa SQLite en nativo; `supabase` selecciona el adaptador original en ambas plataformas. La nube utiliza `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY` configurados y el inicio de sesión original. Los modos locales se abren sin iniciar sesión ni renovar una sesión de nube. Desde la entrada de la nube puedes volver a la biblioteca compartida.
+En Ajustes puedes elegir la biblioteca compartida con Faustus, la biblioteca del navegador o tu cuenta en la nube. `EXPO_PUBLIC_BACKEND=localapi` es el modo web por defecto; `memory` y `local` usan el almacenamiento del navegador en web, `local` usa SQLite en nativo y `supabase` selecciona la fuente en la nube en ambas plataformas. La nube lee `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY` de la configuración y usa el inicio de sesión original, con la importación por cuenta de Steam junto a la importación manual por perfil. Los modos compartido y navegador no requieren inicio de sesión ni renuevan una sesión de nube; la entrada de la nube ofrece volver a la biblioteca compartida.
 
-Los juegos y sesiones compartidos siguen usando REST/MCP y el mismo archivo nativo. Las listas, películas y demás colecciones del navegador reutilizan MemorySource y sus claves de almacenamiento existentes; las modificaciones sobreviven a la recarga. Puedes añadir un juego a una lista desde su ficha. Las cuentas y funciones sociales utilizan Supabase recuperado; las colecciones del navegador no se presentan como publicadas o sincronizadas. La importación mediante cuenta de Steam vuelve a estar disponible en nube junto a la importación actual por perfil y clave. Una operación de contadores de episodios no admitida por juegos compartidos comunica su límite en lugar de afirmar un guardado vacío.
+Los juegos y sesiones compartidos pasan por la biblioteca REST/MCP. Las listas, películas y demás colecciones del navegador usan el almacenamiento del navegador y sobreviven a la recarga; puedes añadir un juego a una lista personalizada desde su ficha. Las cuentas y funciones sociales de la nube usan el cliente y el esquema de Supabase; las colecciones del navegador no se publican ni se sincronizan. Las escrituras de contadores de episodios que los juegos nativos no admiten comunican ese límite en lugar de afirmar que se guardó.
 
-Se recuperan `packages/` y `supabase/` como código histórico. Esta entrega no ejecuta migraciones, despliegues, cuentas de proveedores ni credenciales reales. El funcionamiento iOS/Android y la conexión a una nube real requieren su entorno configurado; no se confunden con la comprobación de tipos y los fixtures de contrato privados.
+`packages/` y `supabase/` contienen el código compartido y el esquema de la nube; aquí no se ejecutan migraciones, despliegues ni cuentas de proveedores.
+
+## Estructura del proyecto
+
+| Ruta | Contenido |
+|---|---|
+| `server/` | servidor web (Express) y relevo del copiloto |
+| `mcp/` | servidor MCP y código de la biblioteca |
+| `apps/mobile/` | cliente Expo: compilación web y app nativa |
+| `packages/`, `supabase/` | código compartido y esquema de la nube |
+| `docs/` | `API.md`, `ACTIVITY.md` |
+| `faustus-plugin.json` | manifiesto del plugin |
+
+## Skills
+
+El bloque `skills` de `faustus-plugin.json` nombra el procedimiento de la biblioteca de skills de la familia que encaja con esta app (`game-library-tracking`). La pestaña Skills del hub lo muestra y lo cambia.
+
+## Licencia
+
+Véase `LICENSE`.
