@@ -1,6 +1,5 @@
 // Domain types (mirror the Postgres schema) + demo data.
-// The demo profile is seeded with the REAL numbers reconstructed from the TV Time import,
-// so the app shows "your data, already here."
+// Demo fixtures are separate from imported and signed-in profiles.
 export type FollowState = 'watching' | 'stopped' | 'archived';
 export interface Show { id: string; title: string; poster: string; network?: string; status?: string; seasons?: number; matchPct?: number; }
 export interface UpNext { show: Show; season: number; episode: number; behind: number; title: string; badges: ('premiere'|'new'|'last')[]; }
@@ -9,7 +8,7 @@ export interface EpisodeRow { id: string; season: number; number: number; abs: n
 const img = (seed: string) => `https://picsum.photos/seed/${seed}/300/450`;
 
 export const demoProfile = {
-  handle: 'luissalet',
+  handle: 'sample_player',
   following: 6, followers: 5, comments: 3,
   seriesClock: '8mo 23d 22h',   // reconstructed from the real export (matches the app)
   episodes: 14611,
