@@ -42,10 +42,12 @@ Installed automatically by the shared server helpers after `family.configure`:
 
 | Route | Purpose |
 |-------|---------|
-| `GET /api/copilot/info` | app id and name, panel URL, Faustus settings URL (503 when Faustus is not configured) |
+| `GET /api/copilot/info` | app id and name, panel URL, Faustus settings URL (503 with `copilot_unavailable` when no candidate responds with copilot capabilities) |
 | `GET /api/copilot/panel.js` | the `faustus-chat` element, relayed from Faustus |
 | `ALL /api/copilot/proxy` | relay of the chat requests, including streaming |
 | `GET /api/copilot/launcher.js` | the floating button and side panel, injected as `<script type="module">` into every HTML page |
+
+Discovery checks the configured endpoints first, followed by the address reported by the Hub when the copilot has been moved. The launcher is served locally even when discovery fails.
 
 The client side is `window.hoardCopilot` (`apps/mobile/src/copilot.ts`, context builders in `apps/mobile/src/copilotContext.ts`):
 
