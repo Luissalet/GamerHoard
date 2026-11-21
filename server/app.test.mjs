@@ -7,7 +7,6 @@ import { Library } from '../mcp/library.mjs';
 import { createApp, resolveConfig } from './app.mjs';
 import { tvdbIdOf, findGame, view, STEAM_OFFSET } from './mapping.mjs';
 
-process.env.HOARD_FAUSTUS_URL = 'http://127.0.0.1:1';
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gamerhoard-server-'));
 const dist = path.join(root, 'dist');
 fs.mkdirSync(dist);
@@ -168,7 +167,18 @@ test('export and import round trip', async () => {
   } finally { s.close(); }
 });
 
-test('serves the SPA with the Faustus launcher and the copilot routes', async () => {
+test('serves the SPA with the Faustus launcher and the copilot routes', async (t) => {
+  const httpFetch = globalThis.fetch;
+  const upstreamPaths = [];
+  // Keep requests to the app real. Control both sources of copilot discovery.
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    const target = new URL(url);
+    if (target.origin === base) return httpFetch(url, options);
+    upstreamPaths.push(target.pathname);
+    if (target.pathname === '/api/placement') return Response.json({});
+    return new Response(null, { status: 503 });
+  });
+
   const page = await call('GET', '/game/3498');
   assert.equal(page.status, 200);
   assert.ok(page.text.includes('/api/copilot/launcher.js'), 'launcher tag injected');
@@ -178,6 +188,8 @@ test('serves the SPA with the Faustus launcher and the copilot routes', async ()
   const info = await call('GET', '/api/copilot/info');
   assert.equal(info.status, 503);
   assert.equal(info.json.code, 'copilot_unavailable');
+  assert.ok(upstreamPaths.includes('/api/placement'));
+  assert.ok(upstreamPaths.includes('/api/hoard-copilot/capabilities'));
   assert.equal((await call('GET', '/api/unknown')).status, 404);
 });
 
