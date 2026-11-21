@@ -73,6 +73,13 @@
     ]
   },
   "x-family": {
+    "isolated_instance": {
+      "data_env": "GAMERHOARD_DATA_DIR",
+      "port_env": "GAMERHOARD_PORT",
+      "env": {
+        "GAMERHOARD_DATA_FILE": "{DATA_DIR}/library.json"
+      }
+    },
     "copilot": {
       "provider": "faustus",
       "contract": "1.0",
